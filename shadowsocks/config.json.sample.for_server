@@ -1,0 +1,21 @@
+{
+    "port_password":
+    {
+        "1990":"111",
+        "1991":"111",
+        "1992":"123321",
+        "1993":"434343"
+    },
+    "method":"aes-256-cfb8",
+    "log":
+        {
+        "log_enable":"False",
+        "log_path":"/tmp/ss.log"
+    },
+    "forbid":
+        {
+        "site":["youtube"],
+        "port":[110]
+    },
+    "port_limit":"port_limit.json"
+}

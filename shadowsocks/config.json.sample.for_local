@@ -1,0 +1,30 @@
+{
+    "server": ["101.10.10.10","102.10.10.10"],
+    "server_info":
+        {
+            "101.10.10.10": "server_1_info",
+            "102.10.10.10": "server_2_info"
+        },
+    "server_port": [1990,1991,1992,1993],
+    "port_password":
+        {
+            "1990":"123",
+            "1991":"321",
+            "1992":"fuckGFW",
+            "1993":"GFWshit"
+        },
+    "local_address":"0.0.0.0",
+    "method":"aes-256-cfb1",
+    "log":
+    {
+        "log_enable":"False",
+        "log_path":"/some/path/to/the/log"
+    },
+    "forbid":
+    {
+        "site":['youtube','fxxk'],
+        "port":[110]
+    },
+    "timeout":150,
+    "port_limit":"port_limit.json"
+}
