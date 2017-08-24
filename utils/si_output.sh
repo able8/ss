@@ -332,20 +332,35 @@ function main()
     return_already=$(check_already_2 $file $other_args)
     cd_into_right_path $file
 
+    if [ "$return_type" == "shell" ];then
+        log_path="$shell_log"
+    elif [ "$return_type" == "python" ];then
+        log_path="$python_log"
+    elif [ "$return_type" == "perl" ];then
+        log_path="$perl_log"
+    elif [ "$return_type" == "php" ];then
+        log_path="$php_log"
+    elif [ "$return_type" == "unknown" ];then
+        log_path="$unknown_log"
+    else:
+        log_path="$unknown_log"
+    fi
+
     #deal with the script...
     if [ "$return_already" == "yes" ];then
         echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..."
         echo -e "\nsorry or failed or error\n"
-        #echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..." >> /tmp/kk_check
+        echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..." >> $log_path
         exit
     elif [ "$return_already" == "no" ];then
         echo -e "OK...Let's rock it...Baby..^__^..."
+        echo -e "OK...Let's rock it...Baby..^__^..." >> $log_path
         sleep 1
         run_bin $si_path $file_name $return_type $other_args
         after_this_run $file $other_args
     else
         echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.."
-        #echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.." >> /tmp/kk_check
+        echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.." >> $log_path
         exit
     fi
 }
