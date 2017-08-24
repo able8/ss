@@ -60,14 +60,14 @@ function run_bin()
         if [ "$use_own" == "yes" ];then
             echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args
+            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
         else
             if [ "$shell_bin" == " " ];then
                 echo -e "Sorry..shell_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..shell_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $shell_bin $script_file $left_all_args
+            $shell_bin $script_file $left_all_args 2>&1 |tee -a $log_path
         fi
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
@@ -80,14 +80,14 @@ function run_bin()
         if [ "$use_own" == "yes" ];then
             echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args
+            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
         else
             if [ "$python_bin" == " " ];then
                 echo -e "Sorry..python_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..python_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $python_bin $script_file $left_all_args
+            $python_bin $script_file $left_all_args 2>&1|tee -a $log_path
         fi
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
@@ -100,14 +100,14 @@ function run_bin()
         if [ "$use_own" == "yes" ];then
             echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args
+            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
         else
             if [ "$perl_bin" == " " ];then
                 echo -e "Sorry..perl_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..perl_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $perl_bin $script_file $left_all_args
+            $perl_bin $script_file $left_all_args 2>&1|tee -a $log_path
         fi
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
@@ -120,14 +120,14 @@ function run_bin()
         if [ "$use_own" == "yes" ];then
             echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args
+            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
         else
             if [ "$php_bin" == " " ];then
                 echo -e "Sorry..php_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..php_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $php_bin $script_file $left_all_args
+            $php_bin $script_file $left_all_args 2>&1|tee -a $log_path
         fi
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
@@ -272,7 +272,10 @@ function check_already_2()
         exit
     fi
     file_name=$(basename $file_path)
-    si_check_process_file="/var/lock/${file_name}"
+    si_check_process_file="/var/lock/si/${file_name}"
+    if [ ! -d "/var/lock/si" ];then
+        mkdir -p /var/lock/si
+    fi
     if [ ! -f "$si_check_process_file" ];then
         echo -e "$file_name $other_args" > $si_check_process_file
         echo -e "no"
@@ -295,7 +298,10 @@ function after_this_run()
     local other_args="$*"
     #echo -e "file_path [$file_path] other_args [$other_args]" >> /tmp/kk_2
     file_name=$(basename $file_path)
-    si_check_process_file="/var/lock/$file_name"
+    si_check_process_file="/var/lock/si/$file_name"
+    if [ ! -d "/var/lock/si" ];then
+        mkdir -p /var/lock/si
+    fi
     si_check_process_file_tmp="${si_check_process_file}_tmp"
     cat $si_check_process_file |egrep -v -w "^$file_name $other_args$" > $si_check_process_file_tmp
     mv $si_check_process_file_tmp $si_check_process_file
@@ -329,6 +335,7 @@ function main()
     #deal with the script...
     if [ "$return_already" == "yes" ];then
         echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..."
+        echo -e "\nsorry or failed or error\n"
         #echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..." >> /tmp/kk_check
         exit
     elif [ "$return_already" == "no" ];then
