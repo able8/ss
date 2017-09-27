@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding:utf-8 -*-
 
 from __future__ import absolute_import, division, print_function,  with_statement
 import sys,os
@@ -15,9 +16,12 @@ import threading
 import Queue
 import time
 import zipfile
+import traceback
 # from cryptography.hazmat.primitives.ciphers.base import Cipher
 # import openssl
 # import socket
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 #---------------------------------------------------------
 #Please change here with your own key and method (methods all in the list all_method_can_use below)
@@ -36,7 +40,8 @@ libcrypto = None
 loaded = False
 libsodium = None
 
-buf_size = 2048
+buf_size = 1024 * 1024 * 2
+data_size_in_e_or_d = 1024 * 1024
 
 # for salsa20 and chacha20
 BLOCK_SIZE = 64
@@ -55,12 +60,13 @@ else:
 
 
 def print_help():
-    print('''Usage:\n\n %s [OPTION] "The file or dir path"  [--dir_as_one_file]
+    print('''Usage:\n\n %s [OPTION] "The file or dir"
 
-  -d                    Decrypt
-  -e                    Encrypt
+OPTION:
 
-  --dir_as_one_file     will make a zip from the given dir and encrypt the whole zip file
+  -d  Decrypt
+  -e  Encrypt
+
 ''' % sys.argv[0])
     sys.exit()
 
@@ -142,6 +148,75 @@ def find_library(possible_lib_names, search_symbol, library_name):
             pass
     return None
 
+def run_shell_command_3(command_string):
+    from subprocess import Popen,PIPE
+    cmd = "%s" % command_string.strip()
+    p = Popen(cmd,shell=True,stdout=PIPE,stderr=PIPE)
+    out,err = p.communicate()
+    if p.returncode == 0:
+        ret_out = []
+        for t in out.rstrip().splitlines():
+            if str(t).strip() != "":
+                ret_out.append(str(t).strip())
+        ret_err = []
+        for t in err.rstrip().splitlines():
+            if str(t).strip() != "":
+                ret_err.append(str(t).strip())
+        return ("ok",ret_out,ret_err)
+    else:
+        ret_out = []
+        for t in out.rstrip().splitlines():
+            if str(t).strip() != "":
+                ret_out.append(str(t).strip())
+        ret_err = []
+        for t in err.rstrip().splitlines():
+            if str(t).strip() != "":
+                ret_err.append(str(t).strip())
+        return ("problem",ret_out,ret_err)
+
+def get_shell_cmd_output(shell_cmd_str):
+    ret = run_shell_command_3(shell_cmd_str)
+    if ret[0] == "ok":
+        return ret[1]
+    else:
+        return "failed"
+
+def encrypt_or_decrypt(cipher_obj,deal_file,e1_or_d0,force_update="yes"):
+    global data_size_in_e_or_d
+    opend_f = open("%s" % deal_file,'rb')
+    if e1_or_d0 == 1:
+        dest_file = "%s.locked" % deal_file
+        dest_file_ori = "%s.locked.bak" % deal_file
+        if os.path.exists(dest_file):
+            print("[tmp rename %s to %s]" % (dest_file,dest_file_ori))
+            os.rename(dest_file,dest_file_ori)
+    elif e1_or_d0 == 0:
+        dest_file = "%s" % deal_file.replace(".locked","")
+        dest_file_ori = "%s.bak" % deal_file.replace(".locked","")
+        if os.path.exists(dest_file):
+            print("[tmp rename %s to %s]" % (dest_file,dest_file_ori))
+            os.rename(dest_file,dest_file_ori)
+    while True:
+        chunk_data = opend_f.read(data_size_in_e_or_d)
+        if not chunk_data:
+            break
+        if force_update == "yes":
+            if e1_or_d0 == 1:
+                encrypted_data = cipher_obj.update(chunk_data)
+                open("%s.locked" % deal_file,'ab+').write(encrypted_data)
+            elif e1_or_d0 == 0:
+                decrypted_data = cipher_obj.update(chunk_data)
+                open("%s" % deal_file.replace(".locked",""),'ab+').write(decrypted_data)
+        else:
+            if e1_or_d0 == 1:
+                encrypted_data = cipher_obj.encrypt(chunk_data)
+                open("%s.locked" % deal_file,'ab+').write(encrypted_data)
+            elif e1_or_d0 == 0:
+                decrypted_data = cipher_obj.decrypt(chunk_data)
+                open("%s" % deal_file.replace(".locked",""),'ab+').write(decrypted_data)
+    opend_f.close()
+
+
 def get_the_zip_path_for_dir(source_dir_path):
     cwd_path = os.getcwd()
     os.chdir(os.path.split(source_dir_path)[0])
@@ -149,15 +224,9 @@ def get_the_zip_path_for_dir(source_dir_path):
     zipf = zipfile.ZipFile("%s" % dest_zip_file_path,"w")
     for root, dirs, files in os.walk(os.path.split(source_dir_path)[1]):
         for file in files:
-#             print(os.path.join(root,file))
-#             time.sleep(1)
             zipf.write(os.path.join(root,file))
-#             print("root:%s file:%s" % (root,file))
-#             print(os.path.join(root.replace(r"%s" % source_dir_path,""),file))
-#             print(r"%s" % source_dir_path)
     os.chdir(cwd_path)
     return dest_zip_file_path
-
 
 def load_openssl():
     global loaded, libcrypto, buf
@@ -224,6 +293,7 @@ class OpenSSLCrypto(object):
         if buf_size < l:
             buf_size = l * 2
             buf = create_string_buffer(buf_size)
+        buf = create_string_buffer(buf_size)
         libcrypto.EVP_CipherUpdate(self._ctx, byref(buf),
                                    byref(cipher_out_len), c_char_p(data), l)
         # buf is copied to a str object when we access buf.raw
@@ -261,10 +331,10 @@ def get_config():
     if os.path.isfile(the_deal_path) != True and os.path.isdir(the_deal_path) != True:
         print("Sorry.. You must give me a path to a file or dir! EXIT now")
         sys.exit()
-
-    if len(sys.argv) == 4 and str(sys.argv[3]) == "--dir_as_one_file":
-        dir_as_one_file = True
-
+    else:
+        if os.path.isdir(the_deal_path) is True:
+            dir_as_one_file = True
+    return the_deal_path
 
 def load_libsodium():
     global loaded, libsodium, buf
@@ -421,10 +491,10 @@ class TableCipher(object):
 
 def print_json(json_obj,indent_=4):
     print('-' * 50)
-    print(json.dumps(json_obj,indent=indent_,ensure_ascii=True,sort_keys=True))
+    print(json.dumps(json_obj,indent=indent_,ensure_ascii=False,sort_keys=True))
     print('-' * 60)
 
-class do_encrypt_or_decrypt(threading.Thread):
+class do_encrypt_or_decrypt_linux(threading.Thread):
 
     def __init__(self,queue,response_dic,id,key_password,method,choice):
         threading.Thread.__init__(self)
@@ -442,14 +512,12 @@ class do_encrypt_or_decrypt(threading.Thread):
         if self.method in ["table"]:
             if self.choice == "encrypt":
                 cipher_obj = TableCipher(self.method,self.key,random_string(method_supported[self.method][1]),1)
-                encrypted_data = cipher_obj.update(open("%s" % i,'rb').read())
-                open("%s.locked" % i,'wb+').write(encrypted_data)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,1)
                 self.response_dic['%s' % self.id]['before'] = "%s" % i
                 self.response_dic['%s' % self.id]['after'] = "%s.locked" % i
             elif self.choice == "decrypt":
                 cipher_obj = TableCipher(self.method,self.key,random_string(method_supported[self.method][1]),0)
-                decrypted_data = cipher_obj.update(open("%s" % i,'rb').read())
-                open("%s" % i.replace(".locked",""),'wb+').write(decrypted_data)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,0)
                 self.response_dic['%s' % self.id]['before'] = "%s" % i
                 self.response_dic['%s' % self.id]['after'] = "%s" % i.replace(".locked","")
             else:
@@ -458,14 +526,12 @@ class do_encrypt_or_decrypt(threading.Thread):
         elif self.method in ["salsa20","chacha20"]:
             if self.choice == "encrypt":
                 cipher_obj = SodiumCrypto(self.method,self.key,random_string(method_supported[self.method][1]),1)
-                encrypted_data = cipher_obj.update(open("%s" % i,'rb').read())
-                open("%s.locked" % i,'wb+').write(encrypted_data)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,1)
                 self.response_dic['%s' % self.id]['before'] = "%s" % i
                 self.response_dic['%s' % self.id]['after'] = "%s.locked" % i
             elif self.choice == "decrypt":
                 cipher_obj = SodiumCrypto(self.method,self.key,random_string(method_supported[self.method][1]),0)
-                decrypted_data = cipher_obj.update(open("%s" % i,'rb').read())
-                open("%s" % i.replace(".locked",""),'wb+').write(decrypted_data)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,0)
                 self.response_dic['%s' % self.id]['before'] = "%s" % i
                 self.response_dic['%s' % self.id]['after'] = "%s" % i.replace(".locked","")
             else:
@@ -474,18 +540,108 @@ class do_encrypt_or_decrypt(threading.Thread):
         else:
             cipher_obj = Encryptor(self.key,self.method)
             if self.choice == "encrypt":
-                encrypted_data = cipher_obj.encrypt(open("%s" % i,'rb').read())
-                open("%s.locked" % i,'wb+').write(encrypted_data)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,1,force_update="no")
                 self.response_dic['%s' % self.id]['before'] = "%s" % i
                 self.response_dic['%s' % self.id]['after'] = "%s.locked" % i
+                if self.response_dic['%s' % self.id]['before'].endswith(".zip"):
+                    os.remove(self.response_dic['%s' % self.id]['before'])
+                if self.response_dic['%s' % self.id]['before'].endswith(".tar.gz"):
+                    os.remove(self.response_dic['%s' % self.id]['before'])
             elif self.choice == "decrypt":
-                decrypted_data = cipher_obj.decrypt(open("%s" % i,'rb').read())
-                open("%s" % i.replace(".locked",""),'wb+').write(decrypted_data)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,0,force_update="no")
                 self.response_dic['%s' % self.id]['before'] = "%s" % i
                 self.response_dic['%s' % self.id]['after'] = "%s" % i.replace(".locked","")
+                if self.response_dic['%s' % self.id]['after'].endswith(".zip"):
+                    kb = zipfile.ZipFile(self.response_dic['%s' % self.id]['after'])
+                    kb.extractall(os.path.split(self.response_dic['%s' % self.id]['after'])[0])
+                    os.remove(self.response_dic['%s' % self.id]['after'])
+                if self.response_dic['%s' % self.id]['after'].endswith(".tar.gz"):
+                    tar_x_cmd_string = '''tar xvf %s -C /''' % self.response_dic['%s' % self.id]['after']
+                    get_shell_cmd_output(tar_x_cmd_string)
+                    os.remove(self.response_dic['%s' % self.id]['after'])
         end_time = time.time()
         self.response_dic['%s' % self.id]['time_used'] = int(end_time) - int(begin_time)
         self.queue.task_done()
+
+def get_tar_path(the_dir_path):
+    if os.path.exists(the_dir_path) is not True or os.path.isdir(the_dir_path) is not True:
+        print("not exists [%s]" % the_dir_path)
+        sys.exit()
+    else:
+        cmd_string = '''tar zcvf %s.tar.gz %s >/dev/null 2>&1''' % (the_dir_path,the_dir_path)
+        kk = get_shell_cmd_output(cmd_string)
+        if kk != "failed":
+            if os.path.exists("%s.tar.gz" % the_dir_path) is True:
+                return "%s.tar.gz" % the_dir_path
+            else:
+                return ""
+        else:
+            return ""
+
+class do_encrypt_or_decrypt_win(threading.Thread):
+
+    def __init__(self,queue,response_dic,id,key_password,method,choice):
+        threading.Thread.__init__(self)
+        self.queue = queue
+        self.response_dic = response_dic
+        self.id = id
+        self.key = key_password
+        self.method = method
+        self.choice = choice
+        self.response_dic['%s' % self.id] = {}
+
+    def run(self):
+        i = self.queue.get()
+        begin_time = time.time()
+        if self.method in ["table"]:
+            if self.choice == "encrypt":
+                cipher_obj = TableCipher(self.method,self.key,random_string(method_supported[self.method][1]),1)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,1)
+                self.response_dic['%s' % self.id]['before'] = "%s" % i.decode("GB2312").encode("utf-8")
+                self.response_dic['%s' % self.id]['after'] = "%s.locked" % i.decode("GB2312").encode("utf-8")
+            elif self.choice == "decrypt":
+                cipher_obj = TableCipher(self.method,self.key,random_string(method_supported[self.method][1]),0)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,0)
+                self.response_dic['%s' % self.id]['before'] = "%s" % i.decode("GB2312").encode("utf-8")
+                self.response_dic['%s' % self.id]['after'] = "%s" % i.replace(".locked","").decode("GB2312").encode("utf-8")
+            else:
+                print("Sorry 1")
+                sys.exit()
+        elif self.method in ["salsa20","chacha20"]:
+            if self.choice == "encrypt":
+                cipher_obj = SodiumCrypto(self.method,self.key,random_string(method_supported[self.method][1]),1)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,1)
+                self.response_dic['%s' % self.id]['before'] = "%s" % i.decode("GB2312").encode("utf-8")
+                self.response_dic['%s' % self.id]['after'] = "%s.locked" % i.decode("GB2312").encode("utf-8")
+            elif self.choice == "decrypt":
+                cipher_obj = SodiumCrypto(self.method,self.key,random_string(method_supported[self.method][1]),0)
+                encrypt_or_decrypt(cipher_obj,"%s" % i,0)
+                self.response_dic['%s' % self.id]['before'] = "%s" % i.decode("GB2312").encode("utf-8")
+                self.response_dic['%s' % self.id]['after'] = "%s" % i.replace(".locked","").decode("GB2312").encode("utf-8")
+            else:
+                print("Sorry 2")
+                sys.exit()
+        else:
+            cipher_obj = Encryptor(self.key,self.method)
+            if self.choice == "encrypt":
+                print(i.decode("GB2312").encode("utf-8"))
+                encrypt_or_decrypt(cipher_obj,"%s" % i,1,force_update="no")
+                self.response_dic['%s' % self.id]['before'] = "%s" % i.decode("GB2312").encode("utf-8")
+                self.response_dic['%s' % self.id]['after'] = "%s.locked" % i.decode("GB2312").encode("utf-8")
+                if self.response_dic['%s' % self.id]['before'].endswith(".zip"):
+                    os.remove(self.response_dic['%s' % self.id]['before'])
+            elif self.choice == "decrypt":
+                encrypt_or_decrypt(cipher_obj,"%s" % i,0,force_update="no")
+                self.response_dic['%s' % self.id]['before'] = "%s" % i.decode("GB2312").encode("utf-8")
+                self.response_dic['%s' % self.id]['after'] = "%s" % i.replace(".locked","").decode("GB2312").encode("utf-8")
+                if self.response_dic['%s' % self.id]['after'].endswith(".zip"):
+                    kb = zipfile.ZipFile(self.response_dic['%s' % self.id]['after'])
+                    kb.extractall(os.path.split(self.response_dic['%s' % self.id]['after'])[0])
+                    os.remove(self.response_dic['%s' % self.id]['after'])
+        end_time = time.time()
+        self.response_dic['%s' % self.id]['time_used'] = int(end_time) - int(begin_time)
+        self.queue.task_done()
+
 
 method_supported = {
     'aes-128-cfb': (16, 16, OpenSSLCrypto),
@@ -549,7 +705,6 @@ def run_cipher(cipher, decipher):
     assert b''.join(results) == plain
 
 
-
 def test_salsa20():
     cipher = SodiumCrypto('salsa20', b'k' * 32, b'i' * 16, 1)
     decipher = SodiumCrypto('salsa20', b'k' * 32, b'i' * 16, 0)
@@ -574,13 +729,20 @@ if __name__ == '__main__':
         print("Sorry.. method [salsa20/chacha20] not supported on windows; eg: win7  Please change the method")
         sys.exit()
 
-    get_config()
+    the_deal_path_ori = get_config()
     my_queue = Queue.Queue()
     result_dic = {}
     result_dic['method'] = method
     try:
         if dir_as_one_file:
-            the_deal_path = get_the_zip_path_for_dir(the_deal_path)
+            if os.name == 'posix':
+                the_deal_path = get_tar_path(the_deal_path)
+                if the_deal_path == "":
+                    the_deal_path = get_the_zip_path_for_dir(the_deal_path)
+            elif os.name == 'nt':
+                the_deal_path = get_the_zip_path_for_dir(the_deal_path)
+            if the_deal_path != "":
+                shutil.rmtree(the_deal_path_ori)
         if method in ["salsa20","chacha20"] and not loaded:
             load_libsodium()
         elif method not in ['table'] and not loaded:
@@ -588,9 +750,12 @@ if __name__ == '__main__':
         if os.path.isdir(the_deal_path):
             os.chdir(the_deal_path)
             if choice == "encrypt":
-                all_encrypt_files = [f for f in glob.glob("*") if "locked" not in f]
+                all_encrypt_files = [f for f in glob.glob("*") if "locked" not in f and os.path.isfile(f)]
                 for i in range(len(all_encrypt_files)):
-                    t = do_encrypt_or_decrypt(my_queue,result_dic,i,key,method,choice)
+                    if os.name == 'nt':
+                        t = do_encrypt_or_decrypt_win(my_queue,result_dic,i,key,method,choice)
+                    elif os.name == "posix":
+                        t = do_encrypt_or_decrypt_linux(my_queue,result_dic,i,key,method,choice)
                     t.setDaemon(True)
                     t.start()
                 result_dic['direction'] = 'encrypt'
@@ -599,7 +764,10 @@ if __name__ == '__main__':
             elif choice == "decrypt":
                 all_decrypt_files = [f for f in glob.glob("*.locked")]
                 for i in range(len(all_decrypt_files)):
-                    t = do_encrypt_or_decrypt(my_queue,result_dic,i,key,method,choice)
+                    if os.name == 'nt':
+                        t = do_encrypt_or_decrypt_win(my_queue,result_dic,i,key,method,choice)
+                    elif os.name == "posix":
+                        t = do_encrypt_or_decrypt_linux(my_queue,result_dic,i,key,method,choice)
                     t.setDaemon(True)
                     t.start()
                 result_dic['direction'] = 'decrypt'
@@ -612,22 +780,31 @@ if __name__ == '__main__':
                 if "locked" in the_deal_path:
                     raise Exception("The file has been locked.. %s" % the_deal_path)
                 for i in range(thread_num):
-                    t = do_encrypt_or_decrypt(my_queue,result_dic,i,key,method,choice)
+                    if os.name == 'nt':
+                        t = do_encrypt_or_decrypt_win(my_queue,result_dic,i,key,method,choice)
+                    elif os.name == "posix":
+                        t = do_encrypt_or_decrypt_linux(my_queue,result_dic,i,key,method,choice)
                     t.setDaemon(True)
                     t.start()
                 result_dic['direction'] = 'encrypt'
                 my_queue.put(the_deal_path)
             elif choice == "decrypt":
                 for i in range(thread_num):
-                    t = do_encrypt_or_decrypt(my_queue,result_dic,i,key,method,choice)
+                    if os.name == 'nt':
+                        t = do_encrypt_or_decrypt_win(my_queue,result_dic,i,key,method,choice)
+                    elif os.name == "posix":
+                        t = do_encrypt_or_decrypt_linux(my_queue,result_dic,i,key,method,choice)
                     t.setDaemon(True)
                     t.start()
                 result_dic['direction'] = 'decrypt'
                 my_queue.put(the_deal_path)
             my_queue.join()
         print_json(result_dic)
-        open("%s%sEncrypt_or_Decrypt_my_data.log" % (os.path.split(os.path.abspath(__file__))[0],os.sep),'a+').write("%s\n-------------------------%s-----------------------\n\n"\
-                                                           % (json.dumps(result_dic,indent=4,ensure_ascii=False,sort_keys=True),time.strftime("%Y-%m-%d %H:%M:%S")))
+        open("%s%sencrypt_or_decrypt.log" % (os.path.split(os.path.abspath(__file__))[0],os.sep),'a+').write("%s\n-------------------------%s-----------------------\n\n" % (json.dumps(result_dic,indent=4,ensure_ascii=False,sort_keys=True),time.strftime("%Y-%m-%d %H:%M:%S")))
     except Exception as e:
         print("ERROR INFO: %s" % str(e))
         sys.exit()
+    except:
+        for i in str(traceback.format_exc()).splitlines():
+            print(i)
+
