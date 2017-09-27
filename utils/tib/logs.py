@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# jack@ 2014-07-7
+# tibliu @ 2014-07-7
 #
 
 try:
