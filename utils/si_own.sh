@@ -272,7 +272,10 @@ function check_already_2()
         exit
     fi
     file_name=$(basename $file_path)
-    si_check_process_file="/var/lock/${file_name}"
+    si_check_process_file="/var/lock/si/${file_name}"
+    if [ ! -d "/var/lock/si" ];then
+        mkdir -p /var/lock/si
+    fi
     if [ ! -f "$si_check_process_file" ];then
         echo -e "$file_name $other_args" > $si_check_process_file
         echo -e "no"
@@ -295,7 +298,10 @@ function after_this_run()
     local other_args="$*"
     #echo -e "file_path [$file_path] other_args [$other_args]" >> /tmp/kk_2
     file_name=$(basename $file_path)
-    si_check_process_file="/var/lock/$file_name"
+    si_check_process_file="/var/lock/si/$file_name"
+    if [ ! -d "/var/lock/si" ];then
+        mkdir -p /var/lock/si
+    fi
     si_check_process_file_tmp="${si_check_process_file}_tmp"
     cat $si_check_process_file |egrep -v -w "^$file_name $other_args$" > $si_check_process_file_tmp
     mv $si_check_process_file_tmp $si_check_process_file
@@ -326,19 +332,34 @@ function main()
     return_already=$(check_already_2 $file $other_args)
     cd_into_right_path $file
 
+    if [ "$return_type" == "shell" ];then
+        log_path="$shell_log"
+    elif [ "$return_type" == "python" ];then
+        log_path="$python_log"
+    elif [ "$return_type" == "perl" ];then
+        log_path="$perl_log"
+    elif [ "$return_type" == "php" ];then
+        log_path="$php_log"
+    elif [ "$return_type" == "unknown" ];then
+        log_path="$unknown_log"
+    else:
+        log_path="$unknown_log"
+    fi
+
     #deal with the script...
     if [ "$return_already" == "yes" ];then
         echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..."
-        #echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..." >> /tmp/kk_check
+        echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..." >> $log_path
         exit
     elif [ "$return_already" == "no" ];then
         echo -e "OK...Let's rock it...Baby..^__^..."
+        echo -e "OK...Let's rock it...Baby..^__^..." >> $log_path
         sleep 1
         run_bin $si_path $file_name $return_type $other_args
         after_this_run $file $other_args
     else
         echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.."
-        #echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.." >> /tmp/kk_check
+        echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.." >> $log_path
         exit
     fi
 }
