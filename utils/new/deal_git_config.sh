@@ -5,6 +5,10 @@ if [ -d "/usr/local/src/scripts" ];then
     cd /usr/local/src && git clone https://github.com/bluetib/scripts.git
     cd scripts
     cp -a git_config/.git* /root/
+else
+    cd /usr/local/src && git clone https://github.com/bluetib/scripts.git
+    cd scripts
+    cp -a git_config/.git* /root/
 fi
 
 
