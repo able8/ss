@@ -7,7 +7,7 @@
 . ~/.bashrc 2>/dev/null
 #
 
-si_log_path="/var/log/si_run"
+si_log_path="/var/log/si_run_2"
 
 function is_root()
 {
@@ -42,94 +42,72 @@ function run_bin()
         log_path="$unknown_log"
     fi
     if [ ! -f "$script_file" ];then
-        echo -e "[Sorry..$script_file not found]"
         echo -e "[Sorry..$script_file not found]" >> $log_path
         exit 2
     fi
     if [ "$file_type" == "unknown" ];then
-        echo -e "[Sorry..$file_type is unknown]"
         echo -e "[Sorry..$file_type is unknown]" >> $log_path
         exit 2
     fi
     if [ "$file_type" == "shell" ];then
-        echo -e "【It's a shell..】"
         echo -e "【It's a shell..】" >> $log_path
-        echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】==========================" >> $log_path
         shell_bin=$(which bash 2>/dev/null|column -t)
         if [ "$use_own" == "yes" ];then
-            echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
+            chmod +x $script_file && $script_file $left_all_args 1>>$log_path 2>&1
         else
             if [ "$shell_bin" == " " ];then
-                echo -e "Sorry..shell_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..shell_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $shell_bin $script_file $left_all_args 2>&1 |tee -a $log_path
+            $shell_bin $script_file $left_all_args 1>>$log_path 2>&1
         fi
-        echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
     elif [ "$file_type" == "python" ];then
-        echo -e "【It's a python..】"
         echo -e "【It's a python..】" >> $log_path
-        echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】==========================" >> $log_path
         python_bin=$(which python 2>/dev/null|column -t)
         if [ "$use_own" == "yes" ];then
-            echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
+            chmod +x $script_file && $script_file $left_all_args 1>>$log_path 2>&1
         else
             if [ "$python_bin" == " " ];then
-                echo -e "Sorry..python_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..python_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $python_bin $script_file $left_all_args 2>&1|tee -a $log_path
+            $python_bin $script_file $left_all_args 1>>$log_path 2>&1
         fi
-        echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
     elif [ "$file_type" == "perl" ];then
-        echo -e "【It's a perl..】"
         echo -e "【It's a perl..】" >> $log_path
-        echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】==========================" >> $log_path
         perl_bin=$(which perl 2>/dev/null|column -t)
         if [ "$use_own" == "yes" ];then
-            echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
+            chmod +x $script_file && $script_file $left_all_args 1>>$log_path 2>&1
         else
             if [ "$perl_bin" == " " ];then
-                echo -e "Sorry..perl_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..perl_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $perl_bin $script_file $left_all_args 2>&1|tee -a $log_path
+            $perl_bin $script_file $left_all_args 1>>$log_path 2>&1
         fi
-        echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
     elif [ "$file_type" == "php" ];then
-        echo -e "【It's a php..】"
         echo -e "【It's a php..】" >> $log_path
-        echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= Begin for $script_file:【`date +%F_%H:%M:%S`】==========================" >> $log_path
         php_bin=$(which php 2>/dev/null|column -t)
         if [ "$use_own" == "yes" ];then
-            echo -e "Use own."
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args 2>&1|tee -a $log_path
+            chmod +x $script_file && $script_file $left_all_args 1>>$log_path 2>&1
         else
             if [ "$php_bin" == " " ];then
-                echo -e "Sorry..php_bin is null..Cant run cause not found bash"
                 echo -e "Sorry..php_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $php_bin $script_file $left_all_args 2>&1|tee -a $log_path
+            $php_bin $script_file $left_all_args 1>>$log_path 2>&1
         fi
-        echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】=========================="
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
     fi
 }
@@ -325,7 +303,7 @@ function main()
     file=$1
     shift 1
     other_args="$*"
-    use_own="no"
+    use_own="yes"
     file_name=$(basename $file)
     make_the_log_dirs $file_name
     return_type=$(get_the_script_type $file)
@@ -348,17 +326,14 @@ function main()
 
     #deal with the script...
     if [ "$return_already" == "yes" ];then
-        echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..."
         echo -e "Already one guy doing something...OK..Let's have a rest..See you later...^__^..." >> $log_path
         exit
     elif [ "$return_already" == "no" ];then
-        echo -e "OK...Let's rock it...Baby..^__^..."
         echo -e "OK...Let's rock it...Baby..^__^..." >> $log_path
         sleep 1
         run_bin $si_path $file_name $return_type $other_args
         after_this_run $file $other_args
     else
-        echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.."
         echo -e "Hello...Is anybody here?...Something is going wrong...EXIT now.." >> $log_path
         exit
     fi
