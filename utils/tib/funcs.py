@@ -1092,28 +1092,20 @@ def read_json_from_file_return_dic(file_path):
 
 def get_file_abs_path_two_part(rel_path):
     try:
-        if os.path.exists(rel_path) is True:
-            abs_path,file_name = os.path.split(os.path.realpath(os.path.expanduser(rel_path)))
+        abs_path,file_name = os.path.split(os.path.realpath(os.path.expandvars(os.path.expanduser(rel_path))))
+        if file_name == "" or "." in file_name:
             return (abs_path,file_name)
+        else:
+            return ("%s%s%s" % (abs_path,os.sep,file_name),"")
     except Exception as e:
-        return False
+        return None
 
 def get_file_abs_path(rel_path):
     try:
-        if os.path.exists(rel_path) is True:
-            abs_path,file_name = os.path.split(os.path.realpath(os.path.expanduser(rel_path)))
-            return "%s%s%s" % (abs_path,os.path.sep,file_name)
-        else:
-            abs_path = os.path.realpath(os.path.expanduser(os.path.split(rel_path)[0]))
-            file_name = os.path.split(rel_path)[1]
-            return "%s%s%s" % (abs_path,os.path.sep,file_name)
+        abs_path,file_name = os.path.split(os.path.realpath(os.path.expandvars(os.path.expanduser(rel_path))))
+        return "%s%s%s" % (abs_path,os.path.sep,file_name)
     except Exception as e:
-        return False
-#def check_log_keyworkd_warn(log_path,warn_file,keyword,tail_num):
-#   abs_log_path = get_file_abs_path(log_path)
-#   if not abs_log_path:
-#       egrep_cmd = '''tail -%s %s|egrep "%s" |'''
-
+        return None
 
 def get_time_formated(choice,with_space=True,with_T=False):
     if with_T:
@@ -1300,15 +1292,26 @@ def get_time_formated_2(choice,with_space=True,with_T=False):
                 return None
 
 def check_process_running(name):
-    cmd_string = '''ps -e faux|egrep -i -w "%s"|egrep -v grep|wc -l''' % name
-    number = get_shell_cmd_output(cmd_string)
-    if number[0] != "failed":
-        if int(number[0]) > 0:
-            return "yes"
+    if check_the_platform() == "linux":
+        cmd_string = '''ps -e faux|egrep -i -w "%s"|egrep -v grep|wc -l''' % name
+        number = get_shell_cmd_output(cmd_string)
+        if number[0] != "failed":
+            if int(number[0]) > 0:
+                return "yes"
+            else:
+                return "no"
         else:
-            return "no"
-    else:
-        raise Exception("some error")
+            raise Exception("some error")
+    elif check_the_platform() == "mac":
+        cmd_string = '''ps aux|egrep -i -w "%s"|egrep -v grep|wc -l''' % name
+        number = get_shell_cmd_output(cmd_string)
+        if number[0] != "failed":
+            if int(number[0]) > 0:
+                return "yes"
+            else:
+                return "no"
+        else:
+            raise Exception("some error")
 
 def cal_fu_li(money,rate,year):
     sum = 0
@@ -1364,31 +1367,6 @@ def get_string_between_list_two_keys(first_key,second_key,the_list,default_choic
             all_string += sep_str
     return all_string.lstrip(sep_str).rstrip(sep_str)
 
-#   for k range(default_choice):
-#       for i in range(len(the_list)):
-#           if str(the_list[i]).startswith(first_key):
-#               if i == shit:
-#                   continue
-#               begin = i
-#               break
-#       if begin == "":
-#           return ""
-#       for j in range(len(the_list)):
-#           if str(the_list[j]).startswith(second_key):
-#               if j < begin:
-#                   continue
-#               else:
-#                   end = j
-#                   break
-#       _ret_list.append((begin+1,end))
-#       shit = shit + 1
-#       begin = ""
-#       end = ""
-#   for se in _ret_list:
-#       t_str = sep_str.join([str(ak) for ak in the_list[se[0]:se[1]]])
-#       _ret_list_2.append(t_str)
-#   return sep_str.join(_ret_list_2)
-
 def get_string_between_list_two_keys_not_starts(first_key,second_key,the_list,default_choice=1,sep_str=" "):
     '''
         可以获取到list中的一段数据，可以根据2个关键字来截取，关键key可以不用是开头的^key
@@ -1424,31 +1402,6 @@ def get_string_between_list_two_keys_not_starts(first_key,second_key,the_list,de
             all_string += t_2
             all_string += sep_str
     return all_string.lstrip(sep_str).rstrip(sep_str)
-
-#   for k range(default_choice):
-#       for i in range(len(the_list)):
-#           if str(the_list[i]).startswith(first_key):
-#               if i == shit:
-#                   continue
-#               begin = i
-#               break
-#       if begin == "":
-#           return ""
-#       for j in range(len(the_list)):
-#           if str(the_list[j]).startswith(second_key):
-#               if j < begin:
-#                   continue
-#               else:
-#                   end = j
-#                   break
-#       _ret_list.append((begin+1,end))
-#       shit = shit + 1
-#       begin = ""
-#       end = ""
-#   for se in _ret_list:
-#       t_str = sep_str.join([str(ak) for ak in the_list[se[0]:se[1]]])
-#       _ret_list_2.append(t_str)
-#   return sep_str.join(_ret_list_2)
 
 def convert_timestring_to_time(time_string,choice=1):
     if choice == 1:
@@ -1569,31 +1522,10 @@ def cal_cpu_percent(old_dic,new_dic):
 
 if __name__ == '__main__':
     print cal_fu_li(1,200,10)
-    #a = "2.3.4.5"
-    #str_1 = "2#?3TvP?C;B2fjwfF@"
-    #a = encrypt_str_2(str_1)
-    #b = decrypt_str_2(a)
-    #print str_1
-    #print a
-    #print b
-    #x = {1: 2, 3: 4, 4: 3, 2: 1, 0: 0}
-    #print sort_dic_by_key_or_value(x,sort_by="value")
-    #for i in sort_dic_by_key_or_value(x,sort_by="value"):
-    #   print i
-    #print get_all_disk_of_this_machine()
-    #print run_shell_command_2("ls -al /dddtmp/")
-    #print type(json_dumps_unicode_to_string({"你好":{"i111":"你好"}}))
-    #print type({u"你好":{"i111":"你好"}}) is dict
-    #pass
-    #print get_monday_to_sunday()
-    #print get_this_month_first_day_to_last()
-    #print get_this_quarter_first_day_and_last_day()
-    #print get_this_quarter_total_days_and_remain_days()
     color_print("Hello",color="blue")
     color_print("Hello",color="red")
     color_print("Hello",color="yellow")
     color_print("Hello",color="green")
     color_print("Hello",color="title")
     color_print("Hello",color="info")
-    print get_cpu_percent()
 
