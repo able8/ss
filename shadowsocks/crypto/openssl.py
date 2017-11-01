@@ -34,7 +34,7 @@ buf_size = 2048
 def load_openssl():
     global loaded, libcrypto, buf
 
-    libcrypto = util.find_library(('crypto', 'eay32'),
+    libcrypto = util.find_library(('crypto.1.0.0','crypto', 'eay32'),
                                   'EVP_get_cipherbyname',
                                   'libcrypto')
     if libcrypto is None:
