@@ -10,4 +10,7 @@ else
     port2="$4"
 fi
 
-polipo proxyAddress=$ip proxyPort=$port socksParentProxy="${ip2}:${port2}"  socksProxyType=socks5
+ulimit -n 1000000
+
+echo -e "polipo proxyAddress=$ip proxyPort=$port socksParentProxy="${ip2}:${port2}"  socksProxyType=socks5 authCredentials=tib:gansiduiyo"
+polipo proxyAddress=$ip proxyPort=$port socksParentProxy="${ip2}:${port2}"  socksProxyType=socks5 authCredentials=tib:gansiduiyo
