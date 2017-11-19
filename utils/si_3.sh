@@ -8,6 +8,7 @@
 #
 
 si_log_path="/var/log/si_run_3"
+first_log_path="/var/log/si.log"
 
 function is_root()
 {
@@ -55,13 +56,13 @@ function run_bin()
         shell_bin=$(which bash 2>/dev/null|column -t)
         if [ "$use_own" == "yes" ];then
             echo -e "Use own." >> $log_path
-            chmod +x $script_file && $script_file $left_all_args 1>>$log_path 2>&1 &
+            chmod +x $script_file && $script_file $left_all_args 1>>$log_path 2>&1
         else
             if [ "$shell_bin" == " " ];then
                 echo -e "Sorry..shell_bin is null..Cant run cause not found bash" >> $log_path
                 exit 2
             fi
-            $shell_bin $script_file $left_all_args 1>>$log_path 2>&1 &
+            $shell_bin $script_file $left_all_args 1>>$log_path 2>&1
         fi
         echo -e "============================= End for $script_file:【`date +%F_%H:%M:%S`】==========================\n" >> $log_path
     elif [ "$file_type" == "python" ];then
@@ -301,13 +302,18 @@ function main()
     fi
     si_path="$0"
     file=$1
+    if [ ! -f "$file" ];then
+        echo -e "[$file] not found"
+        echo -e "[`date +%F_%T`] [$file] not found" >> $first_log_path
+        exit 2
+    fi
     shift 1
     other_args="$*"
     use_own="no"
     file_name=$(basename $file)
     make_the_log_dirs $file_name
     return_type=$(get_the_script_type $file)
-    return_already=$(check_already $file_name $other_args)
+    return_already=$(check_already $file $other_args)
     cd_into_right_path $file
 
     if [ "$return_type" == "shell" ];then
