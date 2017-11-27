@@ -8,6 +8,7 @@
 #
 
 si_log_path="/var/log/si_run"
+first_log_path="/var/log/si.log"
 
 function is_root()
 {
@@ -323,6 +324,11 @@ function main()
     fi
     si_path="$0"
     file=$1
+    if [ ! -f "$file" ];then
+        echo -e "[$file] not found"
+        echo -e "[`date +%F_%T`] [$file] not found" >> $first_log_path
+        exit 2
+    fi
     shift 1
     other_args="$*"
     use_own="yes"
