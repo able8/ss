@@ -22,7 +22,7 @@ import hashlib
 import json
 import logging
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 
 from shadowsocks import common
 from shadowsocks.crypto import rc4_md5, openssl, sodium, table
@@ -156,8 +156,7 @@ CIPHERS_TO_TEST = [
     'aes-128-cfb',
     'aes-256-cfb',
     'rc4-md5',
-    'table',
-    'fuck'
+    'table'
 ]
 
 def test_encryptor():

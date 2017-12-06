@@ -19,8 +19,7 @@ from __future__ import absolute_import, division, print_function,  with_statemen
 
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-os.chdir(os.path.dirname(__file__))
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 #from shadowsocks.common import logging
 import signal
 

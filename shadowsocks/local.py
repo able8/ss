@@ -22,20 +22,21 @@ import os
 #from common import logging
 import signal
 import time
-import random
-from funcs import check_the_platform
-if check_the_platform() == "linux":
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-    sys.path.insert(0, os.path.dirname(__file__))
-    os.chdir(os.path.abspath(os.path.dirname(__file__)))
-elif check_the_platform() == "win":
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-    sys.path.insert(0, os.path.dirname(__file__))
-    os.chdir(os.path.abspath(os.path.dirname(__file__)))
-elif check_the_platform() == "mac":
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-    sys.path.insert(0, os.path.dirname(__file__))
-    os.chdir(os.path.abspath(os.path.dirname(__file__)))
+import random,json,platform
+
+def check_the_platform():
+    if platform.system().lower() == "linux":
+        return "linux"
+    elif platform.system().lower() == "darwin":
+        return "mac"
+    elif platform.system().lower() == "windows":
+        return "win"
+    else:
+        return "Unknown"
+
+__os__ = check_the_platform()
+if __os__ == "linux" or __os__ == "win" or __os__ == "mac":
+    sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 else:
     print("Sorry.. No platform defined..EXIT now")
     sys.exit()
@@ -43,8 +44,7 @@ else:
 import common
 import logging
 
-import shell, daemon, eventloop, tcprelay, udprelay, asyncdns
-#from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, asyncdns
+from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, asyncdns
 
 def main():
 
@@ -58,7 +58,7 @@ def main():
     config = shell.get_config(True)
 
     #added by cloud for local random choose a server and the port and the port_password
-    if config['port_password']:
+    if config.has_key('port_password') and len(config['port_password']) != 0:
         if config['password']:
             logging.warn('warning: port_password should not be used with server_port and password. server_port and password will be ignored')
 #         config['server_port'] = int(random.choice(config['port_password'].items())[0])

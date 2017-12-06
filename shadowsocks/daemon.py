@@ -23,7 +23,7 @@ import sys
 import logging
 import signal
 import time
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks import common, shell
 
 # this module is ported from ShadowVPN daemon.c

@@ -28,7 +28,7 @@ import errno
 import logging
 #from shadowsocks.common import logging
 from collections import defaultdict
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks import shell
 from lib2to3.fixer_util import Comma
 

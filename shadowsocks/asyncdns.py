@@ -4,8 +4,7 @@
 # Copyright 2014-2015 clowwindy
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
+# not use this file except in compliance with the License. You may obtain # a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -22,8 +21,7 @@ import socket
 import struct
 import re,sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-os.chdir(os.path.dirname(__file__))
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks import common, lru_cache, eventloop, shell
 import logging
 

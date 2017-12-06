@@ -21,7 +21,7 @@ import os
 import json
 import sys
 import getopt
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks.common import to_bytes, to_str, IPNetwork
 from shadowsocks import encrypt
 import random,time

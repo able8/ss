@@ -22,7 +22,7 @@ import collections
 import logging
 import time
 import sys,os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 
 # this LRUCache is optimized for concurrency, not QPS
 # n: concurrency, keys stored in the cache
