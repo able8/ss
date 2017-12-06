@@ -19,7 +19,6 @@ from __future__ import absolute_import, division, print_function,  with_statemen
 
 import sys
 import os
-#from common import logging
 import signal
 import time
 import random,json,platform
@@ -38,7 +37,7 @@ __os__ = check_the_platform()
 if __os__ == "linux" or __os__ == "win" or __os__ == "mac":
     sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 else:
-    print("Sorry.. No platform defined..EXIT now")
+    print("Sorry.. Not supported platform EXIT now")
     sys.exit()
 
 import common
@@ -59,29 +58,34 @@ def main():
 
     #added by cloud for local random choose a server and the port and the port_password
     if config.has_key('port_password') and len(config['port_password']) != 0:
-        if config['password']:
-            logging.warn('warning: port_password should not be used with server_port and password. server_port and password will be ignored')
-#         config['server_port'] = int(random.choice(config['port_password'].items())[0])
-        if config.has_key('server_port'):
-            if type(config['server_port']) == list and config['server_port']:
-                config['server_port'] = random.choice(config.get('server_port', 8388))
-            elif config['server_port']:
-                config['server_port'] == int(common.to_str(config.get('server_port',8388)))
-            else:
-                config['server_port'] = int(random.choice(config['port_password'].items())[0])
-        else:
-            config['server_port'] = int(random.choice(config['port_password'].items())[0])
-        if not config['password'] or str(config['password']) == "":
-            config['password'] = common.to_str(config['port_password']["%s" % config['server_port']])
+        config['server_port'] = int(random.choice(config['port_password'].items())[0])
+        config['password'] = common.to_str(config['port_password']["%s" % config['server_port']])
     else:
-        if type(config['server_port']) == list and config['server_port']:
-            config['server_port'] = random.choice(config.get('server_port', 8388))
+        if config.has_key("password") and config.has_key("server_port"):
+            if type(config['server_port']) == list and len(config['server_port']) != 0:
+                config['server_port'] = random.choice(config.get('server_port', 8388))
+            elif type(config['server_port']) == str and config['server_port'] != "":
+                config['server_port'] == int(common.to_str(config.get('server_port',8388)))
+            elif type(config['server_port']) == int and config['server_port'] <= 65530:
+                config['server_port'] = config['server_port']
+            else:
+                print("Sorry..config error please check config.json again")
+                sys.exit(1)
+            if config['password'] == "":
+                print("Sorry..config error please check config.json again")
+                sys.exit(1)
         else:
-            config['server_port'] == int(common.to_str(config.get('server_port',8388)))
-        config["password"] = str(config["port_password"]["%s" % config["server_port"]]).strip()
+            print("Sorry..config error please check config.json again")
+            sys.exit(1)
 
     logging.warn('!' * 30)
-    logging.info("OK.. I choose this guy to help me fuck the GFW.. [ %s : %s : %s : %s : %s]" % (config['server'],config['server_port'],config['password'],config['server_info']["%s" % config['server']],config['method']))
+    if config.has_key('server_info'):
+        if config['server_info'].has_key(config['server']):
+            logging.info("OK.. [ (ip: %s) (server_port: %s) (password: %s) (server_info: %s) (method: %s) ]" % (config['server'],config['server_port'],config['password'],config['server_info']["%s" % config['server']],config['method']))
+        else:
+            logging.info("OK.. [ (ip: %s) (server_port: %s) (password: %s) (method: %s) ]" % (config['server'],config['server_port'],config['password'],config['method']))
+    else:
+        logging.info("OK.. [ (ip: %s) (server_port: %s) (password: %s) (method: %s) ]" % (config['server'],config['server_port'],config['password'],config['method']))
     logging.warn('!' * 30)
     time.sleep(1)
 
