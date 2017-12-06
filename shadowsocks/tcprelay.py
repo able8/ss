@@ -216,8 +216,8 @@ class TCPRelayHandler(object):
             elif sock == self._local_sock and not self._is_local and self._stage == STAGE_STREAM:
                 logging.info("[Server] Received data from INTERNET and going to send -encrypted- data to [client] ! data length is: [%s]" % l)
                 if self._config.has_key("limit"):
-                    if self._config['limit'].has_key(self.server._listen_port):
-                        self._config['limit'][self.server._listen_port]['used'] += l
+                    if self._config['limit'].has_key(self._server._listen_port):
+                        self._config['limit'][self._server._listen_port]['used'] += l
                 #if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
                 #   port_limits = json.loads(open(self._config['port_limit']).read())
                 #   if str(self._server._listen_port) in port_limits:
@@ -746,8 +746,8 @@ class TCPRelay(object):
         logging.debug("Running in the TCPRelay class....[_handle_events]")
         if not self._is_local:
             if self._config.has_key("limit"):
-                if self._config['limit'].has_key(self.server._listen_port):
-                    if self._config['limit'][self.server._listen_port]['used'] >= self._config['limit'][self.server._listen_port]['total']:
+                if self._config['limit'].has_key(self._server._listen_port):
+                    if self._config['limit'][self._server._listen_port]['used'] >= self._config['limit'][self._server._listen_port]['total']:
                         logging.warn('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
                         self.close()
             #if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
