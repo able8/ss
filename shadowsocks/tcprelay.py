@@ -214,11 +214,10 @@ class TCPRelayHandler(object):
                 logging.info("[Server] Received data from client and going to send -decrypted- data to [INTERNET] ! data length is: [%s]" % l)
             elif sock == self._local_sock and not self._is_local and self._stage == STAGE_STREAM:
                 logging.info("[Server] Received data from INTERNET and going to send -encrypted- data to [client] ! data length is: [%s]" % l)
-            if not self._is_local:
                 if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
                     port_limits = json.loads(open(self._config['port_limit']).read())
                     if str(self._server._listen_port) in port_limits:
-                        port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + len(data)
+                        port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + l
                         open('%s' % self._config['port_limit'],"w").write("%s" % json.dumps(port_limits,indent=4,ensure_ascii=False,sort_keys=True))
             s = sock.send(data)
             if s < l:
@@ -460,11 +459,6 @@ class TCPRelayHandler(object):
             data = self._encryptor.decrypt(data)
             if not data:
                 return
-#           if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
-#               port_limits = json.loads(open(self._config['port_limit']).read())
-#               if str(self._server._listen_port) in port_limits:
-#                   port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + len(data)
-#                   open('%s' % self._config['port_limit'],"w").write("%s" % json.dumps(port_limits,indent=4,ensure_ascii=False,sort_keys=True))
         if self._stage == STAGE_STREAM:
             if self._is_local:
                 data = self._encryptor.encrypt(data)
@@ -501,12 +495,6 @@ class TCPRelayHandler(object):
             data = self._encryptor.encrypt(data)
         try:
             self._write_to_sock(data, self._local_sock)
-#             if not self._is_local:
-#                 if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
-#                     port_limits = json.loads(open(self._config['port_limit']).read())
-#                     if str(self._server._listen_port) in port_limits:
-#                         port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + len(data) + BUF_SIZE
-#                         open('%s' % self._config['port_limit'],"w").write("%s" % json.dumps(port_limits,indent=4,ensure_ascii=False,sort_keys=True))
         except Exception as e:
             shell.print_exception(e)
             if self._config['verbose']:
@@ -521,12 +509,6 @@ class TCPRelayHandler(object):
             data = b''.join(self._data_to_write_to_local)
             self._data_to_write_to_local = []
             self._write_to_sock(data, self._local_sock)
-#           if not self._is_local:
-#               if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
-#                   port_limits = json.loads(open(self._config['port_limit']).read())
-#                   if str(self._server._listen_port) in port_limits:
-#                       port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + len(data)
-#                       open('%s' % self._config['port_limit'],"w").write("%s" % json.dumps(port_limits,indent=4,ensure_ascii=False,sort_keys=True))
         else:
             self._update_stream(STREAM_DOWN, WAIT_STATUS_READING)
 
@@ -538,12 +520,6 @@ class TCPRelayHandler(object):
             data = b''.join(self._data_to_write_to_remote)
             self._data_to_write_to_remote = []
             self._write_to_sock(data, self._remote_sock)
-#             if not self._is_local:
-#                 if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
-#                     port_limits = json.loads(open(self._config['port_limit']).read())
-#                     if str(self._server._listen_port) in port_limits:
-#                         port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + len(data)
-#                         open('%s' % self._config['port_limit'],"w").write("%s" % json.dumps(port_limits,indent=4,ensure_ascii=False,sort_keys=True))
         else:
             self._update_stream(STREAM_UP, WAIT_STATUS_READING)
 
@@ -762,16 +738,16 @@ class TCPRelay(object):
 
     def handle_event(self, sock, fd, event):
         logging.debug("Running in the TCPRelay class....[_handle_events]")
-        # handle events and dispatch to handlers
-        if sock:
-            logging.debug("LOGGING fd %d %s" %
-                          (fd, eventloop.EVENT_NAMES.get(event, event)))
         if not self._is_local:
             if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
                 port_limits = json.loads(open(self._config['port_limit']).read())
                 if str(self._listen_port) in port_limits and port_limits['%s' % self._listen_port]['used'] >= port_limits['%s' % self._listen_port]['total']:
                     logging.warn('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
                     self.close()
+        # handle events and dispatch to handlers
+        if sock:
+            logging.debug("LOGGING fd %d %s" %
+                          (fd, eventloop.EVENT_NAMES.get(event, event)))
         if sock == self._server_socket:
             if event & eventloop.POLL_ERR:
                 # TODO

@@ -20,6 +20,8 @@ from __future__ import absolute_import, division, print_function,  with_statemen
 import os
 import json
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import getopt
 sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks.common import to_bytes, to_str, IPNetwork
@@ -166,9 +168,10 @@ def get_config(is_local):
             logging.info('loading config from %s' % config_path)
             with open(config_path, 'rb') as f:
                 try:
+                    #config = json.loads(f.read())
                     config = json.loads(f.read().decode('utf8'),object_hook=_decode_dict)
                 except ValueError as e:
-                    logging.error('found an error in config.json: [%s] .. Please make sure path like: [C:\\ss\\ss.log] on win platform' % e.message)
+                    logging.error('found an error in config.json: [%s] .. Please make sure path like: [C:\\ss\\ss.log] on win platform' % str(e))
                     sys.exit(1)
         else:
             config = {}
@@ -380,5 +383,7 @@ def _decode_dict(data):
             value = _decode_list(value)
         elif isinstance(value, dict):
             value = _decode_dict(value)
+        if hasattr(key,"encode"):
+            ke = key.encode("utf-8")
         rv[key] = value
     return rv
