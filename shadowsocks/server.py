@@ -33,7 +33,7 @@ def main():
 
     daemon.daemon_exec(config)
 
-    if config['port_password']:
+    if config.has_key('port_password') and len(config['port_password']) != 0:
         if config['password']:
             logging.warn('warning: port_password should not be used with server_port and password. server_port and password will be ignored')
     else:

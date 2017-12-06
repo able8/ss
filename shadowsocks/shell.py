@@ -23,7 +23,7 @@ import sys
 import getopt
 sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks.common import to_bytes, to_str, IPNetwork
-from shadowsocks import encrypt
+from shadowsocks import encrypt,common
 import random,time
 #logging = sys.modules['logging']
 import logging
@@ -86,6 +86,27 @@ def check_config(config, is_local):
         logging.error('password or port_password not specified')
         print_help(is_local)
         sys.exit(2)
+
+    if config.has_key('port_password') and len(config['port_password']) != 0:
+        config['server_port'] = int(random.choice(config['port_password'].items())[0])
+        config['password'] = common.to_str(config['port_password']["%s" % config['server_port']])
+    else:
+        if config.has_key("password") and config.has_key("server_port"):
+            if type(config['server_port']) == list and len(config['server_port']) != 0:
+                config['server_port'] = random.choice(config.get('server_port', 1990))
+            elif type(config['server_port']) == str and config['server_port'] != "":
+                config['server_port'] == int(common.to_str(config.get('server_port',1990)))
+            elif type(config['server_port']) == int and config['server_port'] <= 65530:
+                config['server_port'] = config['server_port']
+            else:
+                print("Sorry..config error please check config.json again")
+                sys.exit(1)
+            if config['password'] == "":
+                print("Sorry..config error please check config.json again [password is empty]")
+                sys.exit(1)
+        else:
+            print("Sorry..config error please check config.json again [At lease give me password and server_port]")
+            sys.exit(1)
 
     if 'local_port' in config:
         config['local_port'] = int(config['local_port'])
@@ -211,6 +232,7 @@ def get_config(is_local):
         sys.exit(2)
 
     config['password'] = to_bytes(config.get('password', b''))
+    config['server_port'] = to_bytes(config.get('server_port', b''))
     config['method'] = to_str(config.get('method', 'aes-256-cfb'))
     config['port_password'] = config.get('port_password', None)
     config['timeout'] = int(config.get('timeout', 300))
@@ -246,10 +268,6 @@ def get_config(is_local):
         except Exception as e:
             logging.error(e)
             sys.exit(2)
-    config['server_port'] = config.get('server_port', 8888)
-    if config['server_port'] == 8888:
-        logging.warn("ATTENTION !!!! Local___VPS:8888    Server___0.0.0.0:8888")
-        logging.info("~~~~~~~")
 
     logging.getLogger('').handlers = []
     if config['verbose'] >= 2:

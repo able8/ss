@@ -56,28 +56,6 @@ def main():
 
     config = shell.get_config(True)
 
-    #added by cloud for local random choose a server and the port and the port_password
-    if config.has_key('port_password') and len(config['port_password']) != 0:
-        config['server_port'] = int(random.choice(config['port_password'].items())[0])
-        config['password'] = common.to_str(config['port_password']["%s" % config['server_port']])
-    else:
-        if config.has_key("password") and config.has_key("server_port"):
-            if type(config['server_port']) == list and len(config['server_port']) != 0:
-                config['server_port'] = random.choice(config.get('server_port', 8388))
-            elif type(config['server_port']) == str and config['server_port'] != "":
-                config['server_port'] == int(common.to_str(config.get('server_port',8388)))
-            elif type(config['server_port']) == int and config['server_port'] <= 65530:
-                config['server_port'] = config['server_port']
-            else:
-                print("Sorry..config error please check config.json again")
-                sys.exit(1)
-            if config['password'] == "":
-                print("Sorry..config error please check config.json again")
-                sys.exit(1)
-        else:
-            print("Sorry..config error please check config.json again")
-            sys.exit(1)
-
     logging.warn('!' * 30)
     if config.has_key('server_info'):
         if config['server_info'].has_key(config['server']):
