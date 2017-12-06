@@ -31,6 +31,7 @@ import logging
 sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks import encrypt, eventloop, shell, common
 from shadowsocks.common import parse_header
+from tib import funcs,logs
 
 # logging = sys.modules['logging']
 
@@ -214,11 +215,14 @@ class TCPRelayHandler(object):
                 logging.info("[Server] Received data from client and going to send -decrypted- data to [INTERNET] ! data length is: [%s]" % l)
             elif sock == self._local_sock and not self._is_local and self._stage == STAGE_STREAM:
                 logging.info("[Server] Received data from INTERNET and going to send -encrypted- data to [client] ! data length is: [%s]" % l)
-                if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
-                    port_limits = json.loads(open(self._config['port_limit']).read())
-                    if str(self._server._listen_port) in port_limits:
-                        port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + l
-                        open('%s' % self._config['port_limit'],"w").write("%s" % json.dumps(port_limits,indent=4,ensure_ascii=False,sort_keys=True))
+                if self._config.has_key("limit"):
+                    if self._config['limit'].has_key(self.server._listen_port):
+                        self._config['limit'][self.server._listen_port]['used'] += l
+                #if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
+                #   port_limits = json.loads(open(self._config['port_limit']).read())
+                #   if str(self._server._listen_port) in port_limits:
+                #       port_limits['%s' % self._server._listen_port]['used'] = port_limits['%s' % self._server._listen_port]['used'] + l
+                #       open('%s' % self._config['port_limit'],"w").write("%s" % json.dumps(port_limits,indent=4,ensure_ascii=False,sort_keys=True))
             s = sock.send(data)
             if s < l:
                 data = data[s:]
@@ -618,11 +622,13 @@ class TCPRelay(object):
     def __init__(self, config, dns_resolver, is_local, stat_callback=None):
         logging.debug("Running in the TCPRelay class. [init]")
         self._config = config
+        self._config_file = "config.json"
         self._is_local = is_local
         self._dns_resolver = dns_resolver
         self._closed = False
         self._eventloop = None
         self._fd_to_handlers = {}
+        self._check_need_save_config_timestamp = "check_point"
 
         self._timeout = config['timeout']
         self._timeouts = []  # a list for all the handlers
@@ -739,11 +745,16 @@ class TCPRelay(object):
     def handle_event(self, sock, fd, event):
         logging.debug("Running in the TCPRelay class....[_handle_events]")
         if not self._is_local:
-            if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
-                port_limits = json.loads(open(self._config['port_limit']).read())
-                if str(self._listen_port) in port_limits and port_limits['%s' % self._listen_port]['used'] >= port_limits['%s' % self._listen_port]['total']:
-                    logging.warn('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
-                    self.close()
+            if self._config.has_key("limit"):
+                if self._config['limit'].has_key(self.server._listen_port):
+                    if self._config['limit'][self.server._listen_port]['used'] >= self._config['limit'][self.server._listen_port]['total']:
+                        logging.warn('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
+                        self.close()
+            #if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
+            #   port_limits = json.loads(open(self._config['port_limit']).read())
+            #   if str(self._listen_port) in port_limits and port_limits['%s' % self._listen_port]['used'] >= port_limits['%s' % self._listen_port]['total']:
+            #       logging.warn('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
+            #       self.close()
         # handle events and dispatch to handlers
         if sock:
             logging.debug("LOGGING fd %d %s" %
@@ -777,7 +788,27 @@ class TCPRelay(object):
                 logging.warn('poll removed fd')
                 common.error_to_file('poll removed fd',self._config)
 
+    def need_to_flush_config(self):
+        if os.path.exists(self._check_need_save_config_timestamp) is not True:
+            return True
+        if os.path.exists(self._check_need_save_config_timestamp) and int(time.time()) - int(open(self._check_need_save_config_timestamp).read()) > 30:
+            return True
+        else:
+            return False
+
+    def save_config_to_disk(self):
+        fl = funcs.lock_the_file(self._config_file)
+        fl_timestamp = funcs.lock_the_file(self._check_need_save_config_timestamp)
+        with fl:
+            with open(self._config_file,"w+") as f:
+                f.write("%s\n" % funcs.json_dumps_unicode_to_string(self._config))
+        with fl_timestamp:
+            with open(self._check_need_save_config_timestamp,"w+") as f:
+                f.write("%s" % int(time.time()))
+
     def handle_periodic(self):
+        if need_to_flush_config():
+            save_config_to_disk()
         self._sweep_timeout()
         if self._closed:
             if self._server_socket:
