@@ -216,8 +216,8 @@ class TCPRelayHandler(object):
             elif sock == self._local_sock and not self._is_local and self._stage == STAGE_STREAM:
                 logging.info("[Server] Received data from INTERNET and going to send -encrypted- data to [client] ! data length is: [%s]" % l)
                 if self._config.has_key("limit"):
-                    if self._config['limit'].has_key(self._server._listen_port):
-                        self._config['limit'][self._server._listen_port]['used'] += l
+                    if self._config['limit'].has_key(str(self._server._listen_port)):
+                        self._config['limit'][str(self._server._listen_port)]['used'] += l
                 #if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
                 #   port_limits = json.loads(open(self._config['port_limit']).read())
                 #   if str(self._server._listen_port) in port_limits:
@@ -746,8 +746,8 @@ class TCPRelay(object):
         logging.debug("Running in the TCPRelay class....[_handle_events]")
         if not self._is_local:
             if self._config.has_key("limit"):
-                if self._config['limit'].has_key(self._server._listen_port):
-                    if self._config['limit'][self._server._listen_port]['used'] >= self._config['limit'][self._server._listen_port]['total']:
+                if self._config['limit'].has_key(str(self._listen_port)):
+                    if self._config['limit'][str(self._listen_port)]['used'] >= self._config['limit'][str(self._listen_port)]['total']:
                         logging.warn('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
                         self.close()
             #if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
@@ -797,18 +797,22 @@ class TCPRelay(object):
             return False
 
     def save_config_to_disk(self):
-        fl = funcs.lock_the_file(self._config_file)
-        fl_timestamp = funcs.lock_the_file(self._check_need_save_config_timestamp)
+        print("---------------round one -------")
+        fl = funcs.lock_the_file_and_touch(self._config_file)
+        fl_timestamp = funcs.lock_the_file_and_touch(self._check_need_save_config_timestamp)
         with fl:
             with open(self._config_file,"w+") as f:
+                if self._config.has_key("forbidden_ip"):
+                    del self._config["forbidden_ip"]
                 f.write("%s\n" % funcs.json_dumps_unicode_to_string(self._config))
         with fl_timestamp:
             with open(self._check_need_save_config_timestamp,"w+") as f:
                 f.write("%s" % int(time.time()))
 
     def handle_periodic(self):
-        if self.need_to_flush_config():
-            self.save_config_to_disk()
+        if not self._is_local:
+            if self.need_to_flush_config():
+                self.save_config_to_disk()
         self._sweep_timeout()
         if self._closed:
             if self._server_socket:

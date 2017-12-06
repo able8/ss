@@ -54,7 +54,6 @@ def main():
     udp_servers = []
     dns_resolver = asyncdns.DNSResolver(config)
     port_password = config['port_password']
-    del config['port_password']
     for port, password in port_password.items():
         a_config = config.copy()
         a_config['server_port'] = int(port)
