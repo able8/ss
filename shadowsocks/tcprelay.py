@@ -797,7 +797,6 @@ class TCPRelay(object):
             return False
 
     def save_config_to_disk(self):
-        print("---------------round one -------")
         fl = funcs.lock_the_file_and_touch(self._config_file)
         fl_timestamp = funcs.lock_the_file_and_touch(self._check_need_save_config_timestamp)
         with fl:
