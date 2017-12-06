@@ -807,8 +807,8 @@ class TCPRelay(object):
                 f.write("%s" % int(time.time()))
 
     def handle_periodic(self):
-        if need_to_flush_config():
-            save_config_to_disk()
+        if self.need_to_flush_config():
+            self.save_config_to_disk()
         self._sweep_timeout()
         if self._closed:
             if self._server_socket:
