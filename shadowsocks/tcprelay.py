@@ -808,8 +808,9 @@ class TCPRelay(object):
                     del self._config_tmp["forbidden_ip"]
                 if self._config_tmp.has_key("log-file"):
                     del self._config_tmp["log-file"]
-                if self._config_tmp.has_key("server"):
-                    del self._config_tmp['server']
+                if not self._is_local:
+                    if self._config_tmp.has_key("server"):
+                        del self._config_tmp['server']
                 if self._config_tmp.has_key("server_port"):
                     del self._config_tmp['server_port']
                 if self._config_tmp.has_key("password"):
@@ -818,20 +819,19 @@ class TCPRelay(object):
                     del self._config_tmp['port_limit']
                 if self._config_tmp.has_key("verbose"):
                     del self._config_tmp['verbose']
-                if not self._is_local:
-                    if self._config_tmp.has_key("local_address"):
-                        del self._config_tmp['local_address']
-                    if self._config_tmp.has_key("local_port"):
-                        del self._config_tmp['local_port']
+                if self._config_tmp.has_key("local_address"):
+                    del self._config_tmp['local_address']
+                if self._config_tmp.has_key("local_port"):
+                    del self._config_tmp['local_port']
                 f.write("%s\n" % funcs.json_dumps_unicode_to_string(self._config_tmp))
         with fl_timestamp:
             with open(self._check_need_save_config_timestamp,"w+") as f:
                 f.write("%s" % int(time.time()))
 
     def handle_periodic(self):
-        if not self._is_local:
-            if self.need_to_flush_config():
-                self.save_config_to_disk()
+        #if not self._is_local:
+        if self.need_to_flush_config():
+            self.save_config_to_disk()
         self._sweep_timeout()
         logging.error("handle_periodic")
         if self._closed:
