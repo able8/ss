@@ -28,6 +28,7 @@ import json
 import traceback
 import random
 import logging
+import copy
 sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
 from shadowsocks import encrypt, eventloop, shell, common
 from shadowsocks.common import parse_header
@@ -635,6 +636,7 @@ class TCPRelay(object):
         # we trim the timeouts once a while
         self._timeout_offset = 0  # last checked position for timeout
         self._handler_to_timeouts = {}  # key: handler value: index in timeouts
+        self._config_tmp = {}
 
         if is_local:
             listen_addr = config['local_address']
@@ -748,7 +750,7 @@ class TCPRelay(object):
             if self._config.has_key("limit"):
                 if self._config['limit'].has_key(str(self._listen_port)):
                     if self._config['limit'][str(self._listen_port)]['used'] >= self._config['limit'][str(self._listen_port)]['total']:
-                        logging.warn('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
+                        logging.error('[TCP] server listen port [%s] used traffic is over the setting value' % self._listen_port)
                         self.close()
             #if self._config.has_key('port_limit') and self._config['port_limit'] != "" and os.path.exists(self._config['port_limit']):
             #   port_limits = json.loads(open(self._config['port_limit']).read())
@@ -801,9 +803,27 @@ class TCPRelay(object):
         fl_timestamp = funcs.lock_the_file_and_touch(self._check_need_save_config_timestamp)
         with fl:
             with open(self._config_file,"w+") as f:
-                if self._config.has_key("forbidden_ip"):
-                    del self._config["forbidden_ip"]
-                f.write("%s\n" % funcs.json_dumps_unicode_to_string(self._config))
+                self._config_tmp = copy.deepcopy(self._config)
+                if self._config_tmp.has_key("forbidden_ip"):
+                    del self._config_tmp["forbidden_ip"]
+                if self._config_tmp.has_key("log-file"):
+                    del self._config_tmp["log-file"]
+                if self._config_tmp.has_key("server"):
+                    del self._config_tmp['server']
+                if self._config_tmp.has_key("server_port"):
+                    del self._config_tmp['server_port']
+                if self._config_tmp.has_key("password"):
+                    del self._config_tmp['password']
+                if self._config_tmp.has_key("port_limit"):
+                    del self._config_tmp['port_limit']
+                if self._config_tmp.has_key("verbose"):
+                    del self._config_tmp['verbose']
+                if not self._is_local:
+                    if self._config_tmp.has_key("local_address"):
+                        del self._config_tmp['local_address']
+                    if self._config_tmp.has_key("local_port"):
+                        del self._config_tmp['local_port']
+                f.write("%s\n" % funcs.json_dumps_unicode_to_string(self._config_tmp))
         with fl_timestamp:
             with open(self._check_need_save_config_timestamp,"w+") as f:
                 f.write("%s" % int(time.time()))
@@ -813,6 +833,7 @@ class TCPRelay(object):
             if self.need_to_flush_config():
                 self.save_config_to_disk()
         self._sweep_timeout()
+        logging.error("handle_periodic")
         if self._closed:
             if self._server_socket:
                 self._eventloop.remove(self._server_socket, self)
