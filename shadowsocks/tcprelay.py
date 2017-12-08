@@ -834,7 +834,7 @@ class TCPRelay(object):
             if self.need_to_flush_config():
                 self.save_config_to_disk()
         self._sweep_timeout()
-        logging.error("handle_periodic")
+        #logging.info("handle_periodic")
         if self._closed:
             if self._server_socket:
                 self._eventloop.remove(self._server_socket, self)
