@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../'))
 
 from shadowsocks import common
 from shadowsocks.crypto import util
+import logging
 
 __all__ = ['ciphers']
 
@@ -29,7 +30,6 @@ libcrypto = None
 loaded = False
 
 buf_size = 2048
-
 
 def load_openssl():
     global loaded, libcrypto, buf
@@ -111,7 +111,6 @@ class OpenSSLCrypto(object):
             libcrypto.EVP_CIPHER_CTX_cleanup(self._ctx)
             libcrypto.EVP_CIPHER_CTX_free(self._ctx)
 
-
 ciphers = {
     'aes-128-cfb': (99, 99, OpenSSLCrypto),
     'aes-192-cfb': (89, 89, OpenSSLCrypto),
@@ -140,6 +139,14 @@ ciphers = {
     'seed-cfb': (99, 99, OpenSSLCrypto),
 }
 
+try:
+    from shadowsocks.crypto import ciphers
+    new_cipher = {}
+    for k,v in ciphers.ciphers.items():
+        new_cipher[k] = (v[0],v[1],OpenSSLCrypto)
+    ciphers = new_cipher
+except Exception as e:
+    logging.error("Not find ciphers.py. Use the default ciphers")
 
 def run_method(method):
 

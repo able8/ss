@@ -99,16 +99,10 @@ class mysql:
 
 
 if __name__ == '__main__':
-    #try:
     new_conn = mysql()
-    #new_conn.sql_conn()
-    #new_conn.sql_conn('112.124.13.219','root','mys_66')
     new_conn.sql_conn(vars.DEV_DB_HOST,vars.DEV_DB_USER,vars.DEV_DB_PASSWORD,vars.DEV_DB_PORT,vars.DEV_DB_NAME)
     b = '''show databases;'''
-    #a = '''replace into t_bankcard_info(id,userId,bankName,branchBankName,area,cardNo) values(54,1286,"中国农业银行","北京市分行昌平区支行南口分理处","北京北京市","6228480010944588614");'''
-    #new_conn.sql_exec('''use tmp_for_test_xiaofeng;''')
     new_conn.sql_exec(b)
-    #new_conn.sql_exec('''select p1.username,p2.realname,from_unixtime(p2.verify_time) as verify_time,p3.phone,p1.email,from_unixtime(p1.last_time) as last_time,p1.logintime from deayou_approve_realname as p2 left join deayou_users as p1 on p1.user_id=p2.user_id left join deayou_users_info as p3 on p1.user_id=p3.user_id where from_unixtime(p2.verify_time) between "2013-12-29" and "2013-12-30" and p2.status=1;''')
     all_result = funs.t_to_l(new_conn.sql_get_result())
     print all_result
     sys.exit()
