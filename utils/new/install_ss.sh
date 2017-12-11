@@ -148,6 +148,9 @@ cd /data && git clone $ss_repo_url >/dev/null 2>&1
 cp -a ss /data/ss_no_change >/dev/null
 cp -a ss /data/ss_no_change >/dev/null
 
+info_me "change timezone to Shanghai"
+bash /data/ss/utils/change_timezone.sh "Asia/Shanghai" >/dev/null 2>&1
+
 info_me "apt-get update"
 apt-get update >/dev/null
 
@@ -211,28 +214,11 @@ fi
 info_me "生成ss的ciphers.py"
 cd /data/ss/shadowsocks/crypto
 python change_cipher_length.py
-#python /bin/Encrypt_or_Decrypt_my_data.py -d openssl_my.py.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d /bin/ss/utils/monitor_bad_guys.py.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d /bin/ss/utils/change_method.sh.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d /bin/ss/utils/change_method.py.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d /bin/ss/utils/alarm.py.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d /bin/ss/utils/uptime.sh.locked >/dev/null
-
-#info_me "ln -s change_method.sh to /bin/"
-#ln -s /data/ss/utils/change_method.sh /bin/
 
 cd /data/ss/utils/new
 if [ -f .bashrc ];then
     rm .bashrc
 fi
-
-#info_me "拷贝一些配置如 .bashrc rc.local 到系统路径"
-#python /bin/Encrypt_or_Decrypt_my_data.py -d .bashrc.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d rc.local.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d check_socks.sh.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d check_socks_server.sh.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d check_socks_local.sh.locked >/dev/null
-#python /bin/Encrypt_or_Decrypt_my_data.py -d zbx.sh.locked >/dev/null
 
 now_path=$(pwd)
 
@@ -243,35 +229,6 @@ echo -e "\ngfw ALL=(root) NOPASSWD:ALL" >> /etc/sudoers
 chmod 440 /etc/sudoers
 
 info_me "安装apache，并且拷贝/etc/apache2 和 /var/www/html"
-#apt-get install -y apache2 >/dev/null 2>&1
-#/etc/init.d/apache2 stop >/dev/null
-#if [ -d "/etc/apache2" ];then
-#   mv /etc/apache2 /etc/apache2_bak
-#fi
-#
-#cwd=$(cd `dirname $0` && pwd)
-#cd $cwd
-#cd ../../web
-#
-#python /bin/Encrypt_or_Decrypt_my_data.py -d apache2.tar.bz2.locked
-#cp -a -f apache2 /etc/
-#
-#mkdir -p /var/www/
-#if [ -d "/var/www/html" ];then
-#   mv /var/www/html /var/www/html_2
-#fi
-#
-#python /bin/Encrypt_or_Decrypt_my_data.py -d html.tar.bz2.locked
-#cp -a -f html /var/www/
-#chmod +x /var/www/html/you_cant_know/p/*
-#chmod 777 /var/www/html/you_cant_know/file
-#
-#python_lib_path=$(python -c "import sys;print sys.path[1]")
-#cp -a /var/www/html/you_cant_know/p/tib $python_lib_path
-#
-#cd $ori_cwd
-
-#python /bin/Encrypt_or_Decrypt_my_data.py -d deal_apache.sh.locked >/dev/null
 bash deal_apache.sh $var_www_path $var_www_path_key $apache_port "$apache_auth" >/dev/null
 cd $now_path
 
@@ -303,9 +260,6 @@ else
     echo -e "\n\n#--------- added for ss [`date +%F_%T`] -----------------" >> /etc/rc.local
     cat rc.local >> /etc/rc.local && chmod +x /etc/rc.local
 fi
-#cp -a -f check_socks.sh /bin/ && chmod +x /bin/check_socks.sh
-#cp -a -f check_socks_local.sh /bin/ && chmod +x /bin/check_socks_local.sh
-#cp -a -f check_socks_server.sh /bin/ && chmod +x /bin/check_socks_server.sh
 cp -a -f ps_mem /bin/ && chmod +x /bin/ps_mem
 
 info_me "chmod +x /bin/{py,sh}"
@@ -372,9 +326,6 @@ cd /data/ss_hub
 git checkout -b ss_hub origin/ss_hub
 cd /data/ss_hub/shadowsocks && python gen_config_json.py ss_hub
 
-info_me "change timezone to Shanghai"
-bash /data/ss/utils/change_timezone.sh "Asia/Shanghai" >/dev/null 2>&1
-
 info_me "cp files to apache /var/www/html/${var_www_path_key}/files/"
 cd $cwd
 cp -a apk ${var_www_path}/files/ >/dev/null 2>&1
@@ -382,18 +333,6 @@ cp -a apk ${var_www_path}/files/ >/dev/null 2>&1
 info_me "deal with git_config"
 cd $cwd
 cp -a git_config/.git* /root/
-
-#info_me "deal with Get_My_Pass.py"
-#python /bin/Encrypt_or_Decrypt_my_data.py -d deal_get_my_pass.sh.locked >/dev/null 2>&1
-#bash deal_get_my_pass.sh >/dev/null 2>&1
-#
-#info_me "chmod +x /bin/{py,sh}"
-#chmod +x /bin/*.py
-#chmod +x /bin/*.sh
-#
-#info_me "deal zbx"
-#cd $cwd
-#bash zbx.sh >/dev/null 2>&1
 
 echo -e "-----------------------------------------------------------------------------------------------"
 echo -e "now we sleep 60 to wait for you.."
