@@ -204,7 +204,7 @@ info_me "ln -s some py to /bin/"
 if [ ! -L "/bin/Encrypt_or_Decrypt_my_data.py" ];then
     ln -s /data/ss/utils/Encrypt_or_Decrypt_my_data.py /bin/
 fi
-if [ ! -L "/bin/Ginfo.sh" ];then
+if [ ! -L "/bin/Ginfo.sh" -a ! -f "/bin/Ginfo.sh" ];then
     ln -s /data/ss/utils/Ginfo.sh /bin/
 fi
 #cp -a -f /bin/ss/utils/change_timezone.sh /bin/
