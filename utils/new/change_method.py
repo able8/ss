@@ -5,7 +5,7 @@ import sys,time,os
 import json
 import random
 sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
-from shadowsocks.tools import logs,funcs
+from tools import logs,funcs
 
 funcs.cd_into_cwd_dir(sys.argv[0])
 
