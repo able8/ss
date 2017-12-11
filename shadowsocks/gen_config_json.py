@@ -111,9 +111,9 @@ for one_port in all_ss_ports:
     config_server_ss['limit'][str(one_port)]['total'] = 0
     config_server_ss['limit'][str(one_port)]['used'] = 0
 for one_port in all_ss_no_change_ports:
-    if user_config['all_ss_no_change_ports'].has_key(str(one_port)):
-        if user_config['all_ss_no_change_ports'][str(one_port)] != "":
-            config_server_ss_no_change['port_password'][str(one_port)] = "%s" % user_config['all_ss_no_change_ports'][str(one_port)]
+    if config_server_ss_no_change['all_ss_no_change_ports'].has_key(str(one_port)):
+        if config_server_ss_no_change['all_ss_no_change_ports'][str(one_port)] != "":
+            config_server_ss_no_change['port_password'][str(one_port)] = "%s" % config_server_ss_no_change['all_ss_no_change_ports'][str(one_port)]
         else:
             config_server_ss_no_change['port_password'][str(one_port)] = "%s" % get_pass()
     else:
@@ -122,9 +122,9 @@ for one_port in all_ss_no_change_ports:
     config_server_ss_no_change['limit'][str(one_port)]['total'] = 0
     config_server_ss_no_change['limit'][str(one_port)]['used'] = 0
 for one_port in all_ss_hub_ports:
-    if user_config['all_ss_hub_ports'].has_key(str(one_port)):
-        if user_config['all_ss_hub_ports'][str(one_port)] != "":
-            config_server_ss_hub['port_password'][str(one_port)] = "%s" % user_config['all_ss_hub_ports'][str(one_port)]
+    if config_server_ss_hub['all_ss_hub_ports'].has_key(str(one_port)):
+        if config_server_ss_hub['all_ss_hub_ports'][str(one_port)] != "":
+            config_server_ss_hub['port_password'][str(one_port)] = "%s" % config_server_ss_hub['all_ss_hub_ports'][str(one_port)]
         else:
             config_server_ss_hub['port_password'][str(one_port)] = "%s" % get_pass()
     else:
