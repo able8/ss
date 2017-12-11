@@ -369,7 +369,7 @@ cd /data/ss_no_change/shadowsocks/ && python gen_config_json.py ss_no_change
 
 info_me "checkout ss_hub"
 cd /data/ss_hub
-git checkout -b ss_from_hub_master origin/ss_from_hub_master
+git checkout -b ss_hub origin/ss_hub
 cd /data/ss_hub/shadowsocks && python gen_config_json.py ss_hub
 
 info_me "change timezone to Shanghai"
