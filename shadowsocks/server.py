@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0]
 import signal
 
 from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, asyncdns, common,manager
-from shadowsocks.tools import funcs,logs
+from tools import funcs,logs
 funcs.cd_into_cwd_dir(sys.argv[0])
 import logging
 
@@ -75,7 +75,7 @@ def main():
         signal.signal(signal.SIGINT, int_handler)
 
         try:
-            loop = eventloop.EventLoop(config)
+            loop = eventloop.EventLoop()
             dns_resolver.add_to_loop(loop)
             list(map(lambda s: s.add_to_loop(loop), tcp_servers + udp_servers))
 
