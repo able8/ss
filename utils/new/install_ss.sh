@@ -146,7 +146,7 @@ echo -e "\n------------------------------------------"
 info_me "clone a new ss from $ss_repo_url"
 cd /data && git clone $ss_repo_url >/dev/null 2>&1
 cp -a ss /data/ss_no_change >/dev/null
-cp -a ss /data/ss_no_change >/dev/null
+cp -a ss /data/ss_hub >/dev/null
 
 info_me "change timezone to Shanghai"
 bash /data/ss/utils/change_timezone.sh "Asia/Shanghai" >/dev/null 2>&1
