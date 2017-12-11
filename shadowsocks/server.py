@@ -15,20 +15,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from __future__ import absolute_import, division, print_function, \
-    with_statement
+from __future__ import absolute_import, division, print_function,  with_statement
 
 import sys
-reload(sys)
-sys.setdefaultencoding("utf8")
 import os
-import logging
+sys.path.insert(0, os.path.split(os.path.split(os.path.realpath(sys.argv[0]))[0])[0])
+#from shadowsocks.common import logging
 import signal
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, \
-    asyncdns, manager
-
+from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, asyncdns, common,manager
+from shadowsocks.tools import funcs,logs
+funcs.cd_into_cwd_dir(sys.argv[0])
+import logging
 
 def main():
     shell.check_python()
@@ -37,11 +35,9 @@ def main():
 
     daemon.daemon_exec(config)
 
-    if config['port_password']:
+    if config.has_key('port_password') and len(config['port_password']) != 0:
         if config['password']:
-            logging.warn('warning: port_password should not be used with '
-                         'server_port and password. server_port and password '
-                         'will be ignored')
+            logging.warn('warning: port_password should not be used with server_port and password. server_port and password will be ignored')
     else:
         config['port_password'] = {}
         server_port = config['server_port']
@@ -58,38 +54,28 @@ def main():
 
     tcp_servers = []
     udp_servers = []
-
-    if 'dns_server' in config:  # allow override settings in resolv.conf
-        dns_resolver = asyncdns.DNSResolver(config['dns_server'],
-                                            config['prefer_ipv6'])
-    else:
-        dns_resolver = asyncdns.DNSResolver(prefer_ipv6=config['prefer_ipv6'])
-
+    dns_resolver = asyncdns.DNSResolver(config)
     port_password = config['port_password']
-    del config['port_password']
     for port, password in port_password.items():
         a_config = config.copy()
         a_config['server_port'] = int(port)
-        a_config['password'] = password
-        logging.info("starting server at %s:%d" %
-                     (a_config['server'], int(port)))
+        a_config['password'] = common.to_str(password)
+        logging.info("starting server at %s:%d" % (a_config['server'], int(port)))
         tcp_servers.append(tcprelay.TCPRelay(a_config, dns_resolver, False))
         udp_servers.append(udprelay.UDPRelay(a_config, dns_resolver, False))
 
     def run_server():
         def child_handler(signum, _):
             logging.warn('received SIGQUIT, doing graceful shutting down..')
-            list(map(lambda s: s.close(next_tick=True),
-                     tcp_servers + udp_servers))
-        signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM),
-                      child_handler)
+            list(map(lambda s: s.close(next_tick=True), tcp_servers + udp_servers))
+        signal.signal(getattr(signal, 'SIGQUIT', signal.SIGTERM), child_handler)
 
         def int_handler(signum, _):
             sys.exit(1)
         signal.signal(signal.SIGINT, int_handler)
 
         try:
-            loop = eventloop.EventLoop()
+            loop = eventloop.EventLoop(config)
             dns_resolver.add_to_loop(loop)
             list(map(lambda s: s.add_to_loop(loop), tcp_servers + udp_servers))
 

@@ -84,7 +84,7 @@ config_server = {
     },
     "log": {
         "log_enable": "False",
-        "log_path": "/var/log/ss/ss.log"
+        "log_path": "/data/logs/ss/ss.log"
     },
     "method": "aes-256-cfb",
     "port_password": {},
@@ -101,9 +101,9 @@ config_server = {
 
 config_server_ss = copy.deepcopy(config_server)
 config_server_ss_no_change = copy.deepcopy(config_server)
-config_server_ss_no_change['log']['log_path'] = "/var/log/ss/ss_no_change.log"
+config_server_ss_no_change['log']['log_path'] = "/data/logs/ss_no_change/ss_no_change.log"
 config_server_ss_hub = copy.deepcopy(config_server)
-config_server_ss_hub['log']['log_path'] = "/var/log/ss/ss_hub.log"
+config_server_ss_hub['log']['log_path'] = "/data/logs/ss_hub/ss_hub.log"
 
 for one_port in all_ss_ports:
     config_server_ss['port_password'][str(one_port)] = "%s" % get_pass()
@@ -111,12 +111,24 @@ for one_port in all_ss_ports:
     config_server_ss['limit'][str(one_port)]['total'] = 0
     config_server_ss['limit'][str(one_port)]['used'] = 0
 for one_port in all_ss_no_change_ports:
-    config_server_ss_no_change['port_password'][str(one_port)] = "%s" % get_pass()
+    if user_config['all_ss_no_change_ports'].has_key(str(one_port)):
+        if user_config['all_ss_no_change_ports'][str(one_port)] != "":
+            config_server_ss_no_change['port_password'][str(one_port)] = "%s" % user_config['all_ss_no_change_ports'][str(one_port)]
+        else:
+            config_server_ss_no_change['port_password'][str(one_port)] = "%s" % get_pass()
+    else:
+        config_server_ss_no_change['port_password'][str(one_port)] = "%s" % get_pass()
     config_server_ss_no_change['limit'][str(one_port)] = {}
     config_server_ss_no_change['limit'][str(one_port)]['total'] = 0
     config_server_ss_no_change['limit'][str(one_port)]['used'] = 0
 for one_port in all_ss_hub_ports:
-    config_server_ss_hub['port_password'][str(one_port)] = "%s" % get_pass()
+    if user_config['all_ss_hub_ports'].has_key(str(one_port)):
+        if user_config['all_ss_hub_ports'][str(one_port)] != "":
+            config_server_ss_hub['port_password'][str(one_port)] = "%s" % user_config['all_ss_hub_ports'][str(one_port)]
+        else:
+            config_server_ss_hub['port_password'][str(one_port)] = "%s" % get_pass()
+    else:
+        config_server_ss_hub['port_password'][str(one_port)] = "%s" % get_pass()
     config_server_ss_hub['limit'][str(one_port)] = {}
     config_server_ss_hub['limit'][str(one_port)]['total'] = 0
     config_server_ss_hub['limit'][str(one_port)]['used'] = 0
@@ -124,19 +136,22 @@ for one_port in all_ss_hub_ports:
 if choice == "ss":
     with open("config.json","w+") as f:
         f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss))
-    if os.path.exists("/bin/ss/shadowsocks/crypto/change_cipher_length.py"):
-        funcs.get_shell_cmd_output('''python /bin/ss/shadowsocks/crypto/change_cipher_length.py''')
-        funcs.get_shell_cmd_output("python /bin/Encrypt_or_Decrypt_my_data.py /bin/ss/shadowsocks/crypto/openssl.py")
-        funcs.get_shell_cmd_output("cp -a /bin/ss/shadowsocks/crypto/openssl.py.locked %s/file/" % var_www_path)
-        funcs.get_shell_cmd_output("cd %s/file/ && md5sum openssl.py.locked > ss_cipher.html" % var_www_path)
+    if os.path.exists("/data/ss/shadowsocks/crypto/change_cipher_length.py"):
+        funcs.get_shell_cmd_output('''python /data/ss/shadowsocks/crypto/change_cipher_length.py''')
+        funcs.get_shell_cmd_output("python /bin/Encrypt_or_Decrypt_my_data.py /data/ss/shadowsocks/crypto/ciphers.py")
+        funcs.get_shell_cmd_output("cp -a /data/ss/shadowsocks/crypto/ciphers.py.locked %s/file/" % var_www_path)
+        funcs.get_shell_cmd_output("cd %s/file/ && md5sum ciphers.py.locked > ss_cipher.html" % var_www_path)
+        funcs.get_shell_cmd_output("python /bin/Encrypt_or_Decrypt_my_data.py /data/ss/shadowsocks/config.json")
+        funcs.get_shell_cmd_output("cp -a /data/ss/shadowsocks/config.json.locked %s/file/" % var_www_path)
+        funcs.get_shell_cmd_output("cd %s/file/ && md5sum config.json.locked > ss_config_json.html" % var_www_path)
 elif choice == "ss_no_change":
     with open("config.json","w+") as f:
         f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_no_change))
-    with open("%s/file/no_change.html","w+") as f:
-        f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_no_change['port_password']))
+    with open("%s/file/no_change.txt" % var_www_path,"w+") as f:
+        f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_no_change))
 elif choice == "ss_hub":
     with open("config.json","w+") as f:
         f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_hub))
-    with open("%s/file/hub.html","w+") as f:
-        f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_hub['port_password']))
+    with open("%s/file/hub.txt" % var_www_path,"w+") as f:
+        f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_hub))
 
