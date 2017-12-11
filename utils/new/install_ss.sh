@@ -80,7 +80,7 @@ function info_me()
 get_info_of_user_config_py="../../shadowsocks/get_info_from_user_config_json.py"
 public_ip=$(curl ip.cip.cc 2>/dev/null)
 num=1
-ss_repo_url="https://github.com/JustAFakeName/ss.git"
+ss_repo_url="https://10.0.0.54/tib/ss.git"
 if [ -f $get_info_of_user_config_py ];then
     ssh_port=$(python $get_info_of_user_config_py ssh_port)
     apache_port=$(python $get_info_of_user_config_py apache_port)
@@ -143,30 +143,13 @@ echo -e $apache_auth
 sleep 2
 
 echo -e "\n------------------------------------------"
-info_me "clone a new ss from github.com"
-cp -a /usr/local/src/ss /data/ss >/dev/null
-cp -a /usr/local/src/ss /data/ss_no_change >/dev/null
-cp -a /usr/local/src/ss /data/ss_hub >/dev/null
-#cd /data && git clone $ss_repo_url >/dev/null 2>&1
-
-# info_me "cp -a -f ss to ss_hub, cp -a -f ss to ss_no_change"
-# cp -a -f ss ss_hub >/dev/null
-# cp -a -f ss ss_no_change >/dev/null
-#info_me "mv /data/ss/fs to /"
+info_me "clone a new ss from $ss_repo_url"
+cd /data && git clone $ss_repo_url >/dev/null 2>&1
+cp -a ss /data/ss_no_change >/dev/null
+cp -a ss /data/ss_no_change >/dev/null
 
 info_me "apt-get update"
 apt-get update >/dev/null
-#info_me "apt-get install openjdk-8"
-#- apt-get install openjdk-8-jdk -y >/dev/null 2>&1
-#- if [ $? -ne 0 ];then
-#-  info_me "apt-get install openjdk-7"
-#-  apt-get install openjdk-7-jdk -y >/dev/null
-#- fi
-#- if [ $? -ne 0 ];then
-#-  info_me "apt-get install openjdk-6"
-#-  apt-get install openjdk-6-jdk -y >/dev/null
-#- fi
-#info_me "restart fs"
 
 info_me "添加防火墙规则允许几个端口 [$ssh_port,$apache_port,$zabbix_agentd_port]"
 iptables -I INPUT 1 -p tcp --dport $ssh_port -j  ACCEPT
