@@ -116,6 +116,8 @@ for one_port in all_ss_no_change_ports:
             config_server_ss_no_change['port_password'][str(one_port)] = "%s" % user_config['all_ss_no_change_ports'][str(one_port)]
         else:
             config_server_ss_no_change['port_password'][str(one_port)] = "%s" % get_pass()
+    else:
+        config_server_ss_no_change['port_password'][str(one_port)] = "%s" % get_pass()
     config_server_ss_no_change['limit'][str(one_port)] = {}
     config_server_ss_no_change['limit'][str(one_port)]['total'] = 0
     config_server_ss_no_change['limit'][str(one_port)]['used'] = 0
@@ -125,6 +127,8 @@ for one_port in all_ss_hub_ports:
             config_server_ss_hub['port_password'][str(one_port)] = "%s" % user_config['all_ss_hub_ports'][str(one_port)]
         else:
             config_server_ss_hub['port_password'][str(one_port)] = "%s" % get_pass()
+    else:
+        config_server_ss_hub['port_password'][str(one_port)] = "%s" % get_pass()
     config_server_ss_hub['limit'][str(one_port)] = {}
     config_server_ss_hub['limit'][str(one_port)]['total'] = 0
     config_server_ss_hub['limit'][str(one_port)]['used'] = 0
