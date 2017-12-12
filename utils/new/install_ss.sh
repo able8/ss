@@ -85,7 +85,7 @@ function info_me()
 get_info_of_user_config_py="../../shadowsocks/get_info_from_user_config_json.py"
 public_ip=$(curl ip.cip.cc 2>/dev/null)
 num=1
-ss_repo_url="https://10.0.0.54/tib/ss.git"
+ss_repo_url="https://github.com/JustAFakeName/ss.git"
 if [ -f $get_info_of_user_config_py ];then
     ssh_port=$(python $get_info_of_user_config_py ssh_port)
     apache_port=$(python $get_info_of_user_config_py apache_port)
