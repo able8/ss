@@ -333,7 +333,7 @@ cd /data/ss_no_change/shadowsocks/ && python gen_config_json.py ss_no_change "ae
 
 info_me "checkout ss_hub"
 cd /data/ss_hub
-git checkout -b ss_hub origin/ss_hub
+git checkout -b github_ss_hub origin/github_ss_hub
 cd /data/ss_hub/shadowsocks && python gen_config_json.py ss_hub "aes-256-cfb"
 
 info_me "cp files to apache /var/www/html/${var_www_path_key}/files/"
