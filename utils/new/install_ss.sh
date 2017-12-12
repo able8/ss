@@ -89,9 +89,13 @@ if [ -f $get_info_of_user_config_py ];then
     var_www_path_key=$(python $get_info_of_user_config_py var_www_path_key)
     change_method_point=$(python $get_info_of_user_config_py change_method_point)
     apache_auth=$(python $get_info_of_user_config_py apache_http_auth)
+    domain=$(python $get_info_of_user_config_py domain)
     #apache_auth_password=$(python $get_info_of_user_config_py apache_http_auth|awk -F'-|-' '{print $2}')
     if [ "$ssh_port" == "" -o "$ssh_port" == "failed" ];then
         ssh_port=10011
+    fi
+    if [ "$domain" == "" -o "$domain" == "failed" ];then
+        domain="no_change"
     fi
     if [ "$change_method_point" == "" -o "$change_method_point" == "failed" ];then
         change_method_point="no_change"
@@ -229,7 +233,7 @@ echo -e "\ngfw ALL=(root) NOPASSWD:ALL" >> /etc/sudoers
 chmod 440 /etc/sudoers
 
 info_me "安装apache，并且拷贝/etc/apache2 和 /var/www/html"
-bash deal_apache.sh $var_www_path $var_www_path_key $apache_port "$apache_auth" >/dev/null
+bash deal_apache.sh $var_www_path $var_www_path_key $apache_port "$apache_auth" "$domain" >/dev/null
 cd $now_path
 
 info_me "创建日志目录"

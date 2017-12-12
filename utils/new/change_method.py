@@ -74,11 +74,7 @@ if int(funcs.get_shell_cmd_output("""sudo ps -e faux|egrep "%s/server.py"|egrep 
 #        print j
 
 print "----------------------------"
-funcs.get_shell_cmd_output("python %s/gen_config_json.py" % ss_path)
-for i in funcs.get_shell_cmd_output('''python /bin/Encrypt_or_Decrypt_my_data.py -e %s && cp -a -v "%s.locked" %s/file/config.json.ss.locked''' % (ss_json,ss_json,web_path_root)):
-    print i
-
-for i in funcs.get_shell_cmd_output('''cd  %s/file/ && md5sum config.json.ss.locked > check.html''' % web_path_root):
+for i in funcs.get_shell_cmd_output("python %s/gen_config_json.py ss %s" % (ss_path,b)):
     print i
 
 a = change(ss_no_change_json)
@@ -91,9 +87,9 @@ if int(funcs.get_shell_cmd_output("""sudo ps -e faux|egrep "%s/server.py"|egrep 
 #        print j
 print "----------------------------"
 if need_change_all:
-    funcs.get_shell_cmd_output("python %s/gen_config_json.py ss_no_change" % ss_no_change_json_path)
+    funcs.get_shell_cmd_output("python %s/gen_config_json.py ss_no_change %s" % (ss_no_change_json_path,a))
 
-a = change(ss_hub_json)
+c = change(ss_hub_json)
 print '''pid_to_kill=$(sudo ps -e faux|egrep "%s/server.py"|egrep -v grep|awk '{print $2}'|column -t) && sudo kill -9 $pid_to_kill >/dev/null 2>&1 \n''' % os.path.split(ss_hub_json)[0]
 if int(funcs.get_shell_cmd_output("""sudo ps -e faux|egrep "%s/server.py"|egrep -v grep|awk '{print $2}'|wc -l""" % os.path.split(ss_hub_json)[0])[0]) == 1:
     for j in funcs.get_shell_cmd_output('''pid_to_kill=$(sudo ps -e faux|egrep "%s/server.py"|egrep -v grep|awk '{print $2}'|column -t) && sudo kill -9 $pid_to_kill >/dev/null 2>&1 ''' % os.path.split(ss_hub_json)[0]):
@@ -103,7 +99,7 @@ if int(funcs.get_shell_cmd_output("""sudo ps -e faux|egrep "%s/server.py"|egrep 
 #        print j
 print "----------------------------"
 if need_change_all:
-    funcs.get_shell_cmd_output("python %s/gen_config_json.py ss_hub" % ss_hub_json_path)
+    funcs.get_shell_cmd_output("python %s/gen_config_json.py ss_hub %s" % (ss_hub_json_path,c))
 
 funcs.get_shell_cmd_output("""cd %s && python %s/server.py -q -q >> %s%s.log 2>&1 &""" % (ss_path,ss_path,ss_log_dir,ss_name))
 funcs.get_shell_cmd_output("""cd %s && python %s/server.py -q -q >> %s%s.log 2>&1 &""" % (ss_no_change_json_path,ss_no_change_json_path,ss_log_dir,ss_no_change_json_name))

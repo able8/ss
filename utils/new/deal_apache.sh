@@ -7,6 +7,7 @@ if [ "$web_path_key" == "no_change" ];then
 fi
 apache_port="$3"
 apache_auth="$4"
+domain="$5"
 ori_cwd=$(pwd)
 
 apt-get install -y apache2
@@ -39,6 +40,9 @@ chmod 777 ${web_path}/file
 sed -i "s/VAR_WWW_PATH_KEY/${web_path_key}/" /etc/apache2/sites-enabled/000-default.conf
 sed -i "s/PORT/${apache_port}/" /etc/apache2/sites-enabled/000-default.conf
 sed -i "s/PORT/${apache_port}/" /etc/apache2/ports.conf
+if [ "$domain" != "no_change" ];then
+    sed -i "s/ServerName love.gfw.com/ServerName ${domain}/" /etc/apache2/sites-enabled/000-default.conf
+fi
 
 if [ "$apache_auth" == "no_change" ];then
     htpasswd -B -b /etc/apache2/passwords "gfw" "lmKGM6rXEf^teHXn"

@@ -19,6 +19,10 @@
     "apache_port_example":"9998",
     "var_www_path_key":"",
     "var_www_path_key_example":"dont_play_with_me",
+    "domain":"",
+    "domain_example":"xx1.xx2.xx3.com",
+    "vps_ip":"",
+    "vps_ip_example ***":"1.1.1.1",
     "说明":{
         "1":"all_ss_ports 应该是所有想要用于ss开放的端口，如果为空，那么就会使用默认+6个随机端口 all_ss_no_change_ports 这个是设定使用默认ss iv length的port 形式如：参考example all_ss_hub_ports 这个是设定使用更安全加密GCM加密的port 形式如: 参考example [如果只有port，没有密码，则自动生成]",
         "2":"root_password 如果设置，那么会在安装ss过程中修改为这个密码，如果留空，那么默认不会修改root密码",
@@ -29,7 +33,8 @@
         "7":"apache_port 设定apache的端口，留空使用默认值",
         "8":"change_method_point 设定什么时间会修改加密方式和ciphers 都是整点数字，小时 例如： [3,5,6,12,18,21] 留空则默认每隔3小时换一次",
         "9":"var_www_path_key 设定apache /var/www/html的下一级目录，关键字，防止其他人猜测到自己的WEB目录结构，不配置使用默认值",
-        "example":"所有example结尾的项都只是一个参考样例"
+        "10":"domain 如果有自己的证书，那么可以配置域名，填写证书对应的域名即可。没有的话，留空 。vps_ip填写VPS对应的公网IP",
+        "example":"所有example配置项都只是一个参考样例，不用理会。有***的是必填项"
     }
 }
 
