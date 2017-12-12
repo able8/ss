@@ -53,7 +53,7 @@ if [ -f $get_info_of_user_config_py ];then
     if [ "$domain" == "" -o "$domain" == "failed" ];then
         domain="no_change"
     fi
-    if [ "$domain" == "" -o "$domain" == "failed" ];then
+    if [ "$vps_ip" == "" -o "$vps_ip" == "failed" ];then
         echo -e "Sorry.. You must give me the vps_ip"
         exit 2
     fi
