@@ -216,7 +216,7 @@ fi
 info_me "生成ss config.json配置"
 cd /data/ss/shadowsocks
 if [ "$server_local_choice" == "server" ];then
-    python gen_config_json.py ss
+    python gen_config_json.py ss "aes-256-cfb"
 elif [ "$server_local_choice" == "local" ];then
     echo -e "Cant use local"
 fi
@@ -329,12 +329,12 @@ if [ -f "../key.pub" ];then
 fi
 
 info_me "change ss_no_change config.json"
-cd /data/ss_no_change/shadowsocks/ && python gen_config_json.py ss_no_change
+cd /data/ss_no_change/shadowsocks/ && python gen_config_json.py ss_no_change "aes-256-cfb"
 
 info_me "checkout ss_hub"
 cd /data/ss_hub
 git checkout -b ss_hub origin/ss_hub
-cd /data/ss_hub/shadowsocks && python gen_config_json.py ss_hub
+cd /data/ss_hub/shadowsocks && python gen_config_json.py ss_hub "aes-256-cfb"
 
 info_me "cp files to apache /var/www/html/${var_www_path_key}/files/"
 cd $cwd
