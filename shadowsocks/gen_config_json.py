@@ -5,14 +5,15 @@ import sys,os,time,json,random,string,copy
 from tools import funcs
 funcs.cd_into_cwd_dir(sys.argv[0])
 
-if len(sys.argv) != 2:
-    print '''Usage:\n\t%s "[ss/ss_no_change/ss_hub]"''' % sys.argv[0]
+if len(sys.argv) != 3:
+    print '''Usage:\n\t%s "[ss/ss_no_change/ss_hub]" "method"''' % sys.argv[0]
     sys.exit()
 else:
     choice = str(sys.argv[1]).strip().lower()
     if choice not in ["ss","ss_no_change","ss_hub"]:
         print '''Usage:\n\t%s "[ss/ss_no_change/ss_hub]"'''
         sys.exit()
+    new_method = str(sys.argv[2]).strip().lower()
 #--------------------
 start_port = 10000
 end_port = 50000
@@ -134,6 +135,7 @@ for one_port in all_ss_hub_ports:
     config_server_ss_hub['limit'][str(one_port)]['used'] = 0
 
 if choice == "ss":
+    config_server_ss['method'] = new_method
     with open("config.json","w+") as f:
         f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss))
     if os.path.exists("/data/ss/shadowsocks/crypto/change_cipher_length.py"):
@@ -145,11 +147,13 @@ if choice == "ss":
         funcs.get_shell_cmd_output("cp -a /data/ss/shadowsocks/config.json.locked %s/file/" % var_www_path)
         funcs.get_shell_cmd_output("cd %s/file/ && md5sum config.json.locked > ss_config_json.html" % var_www_path)
 elif choice == "ss_no_change":
+    config_server_ss_no_change['method'] = new_method
     with open("config.json","w+") as f:
         f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_no_change))
     with open("%s/file/no_change.txt" % var_www_path,"w+") as f:
         f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_no_change))
 elif choice == "ss_hub":
+    config_server_ss_hub['method'] = new_method
     with open("config.json","w+") as f:
         f.write("%s\n" % funcs.json_dumps_unicode_to_string(config_server_ss_hub))
     with open("%s/file/hub.txt" % var_www_path,"w+") as f:
