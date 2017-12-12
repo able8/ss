@@ -344,6 +344,9 @@ info_me "deal with git_config"
 cd $cwd
 cp -a git_config/.git* /root/
 
+info_me "apt-get upgrade"
+apt-get update >/dev/null && apt-get upgrade -y >/dev/null
+
 echo -e "-----------------------------------------------------------------------------------------------"
 echo -e "now we sleep 60 to wait for you.."
 show_time 60
