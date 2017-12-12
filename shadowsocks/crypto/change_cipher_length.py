@@ -3,6 +3,7 @@
 
 import sys,os,time,json
 import random
+from tools import funcs,logs
 
 def get_randome_int():
     return random.randint(35,350)

@@ -3,17 +3,22 @@
 cwd=$(cd `dirname $0` && pwd)
 cd $cwd
 
-if [ $# -ne 1 ];then
-    echo -e "Usage:\n\t$0 \"local/server\""
+
+if [ $(id -u) -ne 0 ];then
+    echo -e "Sorry..Please run me as root"
     exit 2
-else
-    if [ "$1" != "server" -a "$1" != "local" ];then
-        echo -e "Only server or local.."
-        exit 2
-    else
-        server_local_choice="$1"
-    fi
 fi
+
+if [ -d "/data/ss" -o -d "/data/ss_hub" -o -d "/data/ss_no_change" ];then
+    echo -e "Maybe ss alread installed on this machine.[/data/ss]"
+    echo -e "If you need to reinstall please remove /data/ss and /data/ss_hub and /data/ss_no_change"
+    echo -e "And run me again"
+    exit 2
+fi
+
+mkdir -p /data/logs/
+echo -e "install python git vim"
+apt-get install python git vim -y >/dev/null
 
 function show_time_2()
 {
@@ -135,6 +140,7 @@ else
     apache_auth_password="no_change"
 fi
 zabbix_agentd_port=10050
+server_local_choice="server"
 ################################################
 echo -e $apache_port
 echo -e $ssh_port
@@ -342,3 +348,6 @@ echo -e "-----------------------------------------------------------------------
 echo -e "now we sleep 60 to wait for you.."
 show_time 60
 
+echo -e "-------- Now start install bbr -----------"
+sleep 1
+bash bbr.sh
